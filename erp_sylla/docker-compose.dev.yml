@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: erp_sylla_dev_postgres
+    volumes:
+      - erp_sylla_dev_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=erp_sylla
+      - POSTGRES_USER=maliandevboy
+      - POSTGRES_PASSWORD=maliandevboy
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: erp_sylla_dev_redis
+    ports:
+      - "6379:6379"
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: erp_sylla_dev_mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+volumes:
+  erp_sylla_dev_postgres_data:

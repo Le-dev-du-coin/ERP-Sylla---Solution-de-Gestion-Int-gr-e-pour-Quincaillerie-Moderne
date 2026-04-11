@@ -1,0 +1,16 @@
+# BMAD - Ne pas traquer le moteur d'intelligence
+_bmad/
+_bmad-output/
+.gemini/
+
+# Environnements & Secrets
+.envs/
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Fichiers de configuration temporaires
+cookiecutter-config.yaml
+template-django/
