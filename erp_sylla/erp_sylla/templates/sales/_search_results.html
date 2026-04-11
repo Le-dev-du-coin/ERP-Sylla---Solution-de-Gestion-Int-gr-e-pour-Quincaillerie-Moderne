@@ -1,0 +1,54 @@
+{% load erp_tags %}
+<div class="list-group list-group-flush">
+    {% for product in products %}
+    <div class="list-group-item product-result-card border-0 shadow-sm rounded-4 mb-3 p-3 bg-white">
+        <div class="row align-items-center">
+            <!-- Infos Produit -->
+            <div class="col">
+                <h6 class="fw-bold mb-1 text-dark">{{ product.name }}</h6>
+                <div class="d-flex gap-3 align-items-center">
+                    <span class="badge bg-light text-muted border small">{{ product.sku }}</span>
+                    <span class="small text-primary fw-bold"><i class="fas fa-warehouse me-1"></i> Stock : {{ product.formatted_stock }}</span>
+                </div>
+            </div>
+            
+            <!-- Prix -->
+            <div class="col-auto text-end border-start px-4">
+                <div class="mb-1">
+                    <span class="small text-muted">Pièce :</span>
+                    <span class="fw-bold text-dark">{{ product.sale_price_piece|money }}</span>
+                </div>
+                <div>
+                    <span class="small text-muted">Carton :</span>
+                    <span class="fw-bold text-dark">{{ product.sale_price_carton|money }}</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-auto">
+                <div class="btn-group rounded-3 overflow-hidden shadow-sm">
+                    <button class="btn btn-success btn-sm px-3 py-2" 
+                            title="Ajouter une pièce"
+                            hx-post="{% url 'sales:ajax-cart-add' product.pk %}"
+                            hx-vals='{"unit": "PIECE"}'
+                            hx-target="#cart-items">
+                        <i class="fas fa-plus me-1"></i> Pc
+                    </button>
+                    <button class="btn btn-outline-success btn-sm px-3 py-2" 
+                            title="Ajouter un carton"
+                            hx-post="{% url 'sales:ajax-cart-add' product.pk %}"
+                            hx-vals='{"unit": "CARTON"}'
+                            hx-target="#cart-items">
+                        <i class="fas fa-box me-1"></i> Ct
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-search fa-2x mb-3 opacity-25"></i>
+        <p>Aucun article correspondant trouvé.</p>
+    </div>
+    {% endfor %}
+</div>

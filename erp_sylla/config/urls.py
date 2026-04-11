@@ -24,6 +24,7 @@ urlpatterns = [
     # Your stuff: custom urls includes go here
     path("core/", include("erp_sylla.apps.core.urls", namespace="core")),
     path("inventory/", include("erp_sylla.apps.inventory.urls", namespace="inventory")),
+    path("sales/", include("erp_sylla.apps.sales.urls", namespace="sales")),
     # ...
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),

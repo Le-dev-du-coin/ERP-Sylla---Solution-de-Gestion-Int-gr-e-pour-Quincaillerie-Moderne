@@ -94,6 +94,7 @@ LOCAL_APPS = [
     "erp_sylla.users",
     "erp_sylla.apps.core",
     "erp_sylla.apps.inventory",
+    "erp_sylla.apps.sales",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

@@ -1,7 +1,7 @@
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 from .models import Product, Warehouse, StockTransaction
 from .forms import ProductForm, StockTransactionForm
