@@ -10,7 +10,7 @@ class Product(models.Model):
     """
     name = models.CharField(_("Désignation"), max_length=255)
     description = models.TextField(_("Description"), blank=True)
-    sku = models.CharField(_("SKU / Réf interne"), max_length=50, unique=True)
+    sku = models.CharField(_("SKU / Réf interne"), max_length=50, unique=True, blank=True)
     barcode = models.CharField(_("Code Barre"), max_length=100, blank=True, null=True, unique=True)
     
     # Prix en F CFA (Entiers)
@@ -35,6 +35,14 @@ class Product(models.Model):
         verbose_name = _("Article")
         verbose_name_plural = _("Articles")
         ordering = ["name"]
+
+    def save(self, *args, **kwargs):
+        if not self.sku:
+            import uuid
+            from django.utils.text import slugify
+            suffix = str(uuid.uuid4())[:4].upper()
+            self.sku = f"{slugify(self.name).upper()}-{suffix}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} ({self.sku})"
