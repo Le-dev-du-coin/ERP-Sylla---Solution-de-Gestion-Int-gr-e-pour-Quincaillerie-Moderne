@@ -7,8 +7,10 @@ from django.urls import path
 from django.views import defaults as default_views
 from django.views.generic import TemplateView
 
+from erp_sylla.users.views import user_redirect_view
+
 urlpatterns = [
-    path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
+    path("", TemplateView.as_view(template_name="pages/portal.html"), name="home"),
     path(
         "about/",
         TemplateView.as_view(template_name="pages/about.html"),
@@ -21,6 +23,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
     path("core/", include("erp_sylla.apps.core.urls", namespace="core")),
+    path("inventory/", include("erp_sylla.apps.inventory.urls", namespace="inventory")),
     # ...
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),

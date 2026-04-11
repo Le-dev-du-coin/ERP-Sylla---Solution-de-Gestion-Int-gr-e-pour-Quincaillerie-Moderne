@@ -68,6 +68,7 @@ function styles() {
       sass({
         importer: tildeImporter,
         includePaths: [paths.sass],
+        quietDeps: true,
       }).on('error', sass.logError),
     )
     .pipe(plumber()) // Checks for errors
@@ -107,12 +108,12 @@ async function imgCompression() {
 }// Run django server
 function asyncRunServer() {
   const cmd = spawn(
-    'gunicorn',
-    ['config.asgi', '-k', 'uvicorn_worker.UvicornWorker', '--reload'],
+    'poetry',
+    ['run', 'python', 'manage.py', 'runserver'],
     {stdio: 'inherit'},
   );
   cmd.on('close', function (code) {
-    console.log('gunicorn exited with code ' + code);
+    console.log('runserver exited with code ' + code);
   })
 }
 

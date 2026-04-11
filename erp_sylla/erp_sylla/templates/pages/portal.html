@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navbar %}{% endblock navbar %}
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-white py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-dark mb-2">ERP Sylla Madjou</h1>
+            <p class="text-muted px-3">Plateforme de gestion intégrée pour votre commerce</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- Carte Gérant -->
+            <div class="col-12 col-sm-6 col-md-5 col-lg-4">
+                <a href="{% url 'account_login' %}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center role-card" style="border-top: 5px solid #0d6efd !important; border-radius: 15px;">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4 mx-auto" style="width: 70px; height: 70px;">
+                            <i class="fas fa-user-tie fa-2x text-primary"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark">Espace Gérant</h4>
+                        <p class="text-muted small mb-4">Administration et pilotage financier.</p>
+                        <div class="d-grid">
+                            <span class="btn btn-primary rounded-pill py-2">Accéder</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Carte Agent -->
+            <div class="col-12 col-sm-6 col-md-5 col-lg-4">
+                <a href="{% url 'account_login' %}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center role-card" style="border-top: 5px solid #198754 !important; border-radius: 15px;">
+                        <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4 mx-auto" style="width: 70px; height: 70px;">
+                            <i class="fas fa-cash-register fa-2x text-success"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark">Espace Vendeur</h4>
+                        <p class="text-muted small mb-4">Ventes, caisse et suivi de stock.</p>
+                        <div class="d-grid">
+                            <span class="btn btn-success rounded-pill py-2">Accéder</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .role-card {
+        transition: all 0.3s ease;
+        background: #ffffff;
+    }
+    .role-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+    }
+    @media (max-width: 576px) {
+        .display-5 { font-size: 2rem; }
+        .role-card { margin-bottom: 10px; }
+    }
+</style>
+{% endblock %}

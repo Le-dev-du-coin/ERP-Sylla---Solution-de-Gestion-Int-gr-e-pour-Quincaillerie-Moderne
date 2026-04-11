@@ -85,8 +85,8 @@ class TestUserRedirectView:
         request.user = user
 
         view.request = request
-        assert view.get_redirect_url() == f"/users/{user.username}/"
-
+        # Redirection vers POS par défaut (rôle VENDEUR)
+        assert view.get_redirect_url() == "/core/pos/"
 
 class TestUserDetailView:
     def test_authenticated(self, user: User, rf: RequestFactory):
