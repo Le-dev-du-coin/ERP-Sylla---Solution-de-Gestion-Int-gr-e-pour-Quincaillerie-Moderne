@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>Point de Vente (POS)</h1>
+    <p>Bienvenue sur l'interface de vente.</p>
+    <p>Votre rôle : {{ request.user.role }}</p>
+</div>
+{% endblock %}

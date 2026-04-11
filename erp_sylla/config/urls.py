@@ -20,6 +20,7 @@ urlpatterns = [
     path("users/", include("erp_sylla.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
+    path("core/", include("erp_sylla.apps.core.urls", namespace="core")),
     # ...
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
