@@ -1,0 +1,133 @@
+{% extends "dashboard_base.html" %}
+{% load erp_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'inventory:warehouse-list' %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="fw-bold mb-0">{{ warehouse.name }}</h2>
+            <p class="text-muted mb-0 small">{{ warehouse.location }}</p>
+        </div>
+        <div class="ms-auto">
+            <a href="{% url 'inventory:stock-transaction-add' %}?warehouse={{ warehouse.pk }}" class="btn btn-primary rounded-3 px-4">
+                <i class="fas fa-plus me-2"></i> Ajuster le Stock
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Rapides -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
+                <small class="text-muted d-block mb-1">Valeur Totale du Stock (Achat)</small>
+                <h3 class="fw-bold text-primary mb-0">{{ warehouse.total_stock_value|money }}</h3>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm p-4 bg-white rounded-4">
+                <small class="text-muted d-block mb-1">Articles en Stock</small>
+                <h3 class="fw-bold text-dark mb-0">{{ products_in_stock|length }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des articles dans cet entrepôt -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h5 class="mb-0 fw-bold">État des Stocks</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Article</th>
+                        <th class="text-end">Prix Pièce</th>
+                        <th class="text-end">Prix Carton</th>
+                        <th class="text-center">Quantité (Pcs)</th>
+                        <th class="text-center">Facteur p/c</th>
+                        <th class="text-end pe-4">Stock Lisible</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products_in_stock %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-medium text-dark">{{ product.name }}</div>
+                            <small class="text-muted">{{ product.sku }}</small>
+                        </td>
+                        <td class="text-end text-muted">{{ product.sale_price_piece|money }}</td>
+                        <td class="text-end text-muted">{{ product.sale_price_carton|money }}</td>
+                        <td class="text-center">
+                            <span class="fs-5 fw-bold text-primary">{{ product.current_qty }}</span>
+                        </td>
+                        <td class="text-center small text-muted">1 ct = {{ product.conversion_factor }} pc</td>
+                        <td class="text-end pe-4">
+                            <span class="badge bg-info-subtle text-info rounded-pill px-3 py-2">
+                                {{ product.current_formatted_stock }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            Aucun article en stock.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Historique des mouvements pour cet entrepôt -->
+    <div class="accordion border-0 shadow-sm rounded-4 overflow-hidden mt-5" id="historyAccordion">
+        <div class="accordion-item border-0">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHistory">
+                    <i class="fas fa-history me-2 text-primary"></i> Journal des derniers mouvements
+                </button>
+            </h2>
+            <div id="collapseHistory" class="accordion-collapse collapse" data-bs-parent="#historyAccordion">
+                <div class="accordion-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0" style="font-size: 0.85rem;">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Date</th>
+                                    <th>Article</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Quantité (Pcs)</th>
+                                    <th class="pe-4 text-end">Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trans in warehouse.stock_transactions.all|slice:":20" %}
+                                <tr>
+                                    <td class="ps-4 text-muted">{{ trans.created_at|date:"d/m H:i" }}</td>
+                                    <td class="fw-medium">{{ trans.product.name }}</td>
+                                    <td>
+                                        {% if trans.quantity > 0 %}
+                                        <span class="badge bg-success-subtle text-success">Entrée</span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger">Sortie</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end fw-bold {% if trans.quantity > 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ trans.quantity }}
+                                    </td>
+                                    <td class="pe-4 text-end text-muted small italic">{{ trans.notes|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

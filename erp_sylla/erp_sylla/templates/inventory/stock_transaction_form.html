@@ -1,0 +1,165 @@
+{% extends "dashboard_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-6">
+            <div class="d-flex align-items-center mb-4">
+                <a href="javascript:history.back()" class="btn btn-light rounded-circle me-3 shadow-sm">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h2 class="fw-bold mb-0">Mouvement de Stock</h2>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    
+                    <!-- Panel d'info produit (chargé par HTMX) -->
+                    <div id="product-stock-info" class="mb-3"></div>
+
+                    <form method="POST" id="stock-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Article</label>
+                            <select name="product" id="id_product" class="form-select form-select-lg border-0 bg-light rounded-3 px-4 shadow-none" 
+                                    hx-get="{% url 'inventory:ajax-product-info' %}" 
+                                    hx-trigger="change" 
+                                    hx-target="#product-stock-info"
+                                    hx-include="[name='warehouse']">
+                                <option value="">Choisir un article...</option>
+                                {% for choice in form.product.field.choices %}
+                                    {% if choice.0 %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.warehouse|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.type|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Champ conditionnel pour le transfert -->
+                        <div id="target-warehouse-container" style="display: none;" class="mb-3 p-3 bg-info bg-opacity-10 rounded-3 border border-info border-opacity-25">
+                            <h6 class="fw-bold text-info mb-3"><i class="fas fa-arrow-right me-2"></i> Destination du transfert</h6>
+                            {{ form.to_warehouse|as_crispy_field }}
+                        </div>
+
+                        <div class="row bg-light p-3 rounded-3 mb-3 mx-0">
+                            <div class="col-md-6">
+                                {{ form.input_unit|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.quantity|as_crispy_field }}
+                            </div>
+                            
+                            <!-- Texte d'information dynamique -->
+                            <div id="conversion-feedback" class="col-12 mt-2 text-primary fw-bold small" style="display: none;">
+                                <i class="fas fa-calculator me-1"></i> <span id="feedback-text"></span>
+                            </div>
+                        </div>
+
+                        {{ form.notes|as_crispy_field }}
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-bold py-2 shadow-sm">
+                                <i class="fas fa-check-circle me-2"></i> Valider le mouvement
+                            </button>
+                            <a href="javascript:history.back()" class="btn btn-light rounded-3">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts pour l'interactivité -->
+<script>
+    function toggleTransferField(value) {
+        const container = document.getElementById('target-warehouse-container');
+        if (!container) return;
+        
+        if (value === 'TRANS') {
+            container.style.display = 'block';
+            const toWh = document.getElementById('id_to_warehouse');
+            if (toWh) toWh.required = true;
+        } else {
+            container.style.display = 'none';
+            const toWh = document.getElementById('id_to_warehouse');
+            if (toWh) toWh.required = false;
+        }
+    }
+
+    function updateConversionFeedback() {
+        const qtyEl = document.getElementById('id_quantity');
+        const unitEl = document.getElementById('id_input_unit');
+        const factorInput = document.getElementById('current_conv_factor');
+        const feedback = document.getElementById('conversion-feedback');
+        const feedbackText = document.getElementById('feedback-text');
+
+        if (!qtyEl || !unitEl || !factorInput || !feedback || !feedbackText) return;
+
+        const qty = parseFloat(qtyEl.value);
+        const unit = unitEl.value;
+        const factor = parseInt(factorInput.value);
+
+        if (!qty) {
+            feedback.style.display = 'none';
+            return;
+        }
+
+        feedback.style.display = 'block';
+
+        if (unit === 'CARTON') {
+            const pieces = qty * factor;
+            feedbackText.innerText = `Vous avez saisi ${qty} carton(s), cela équivaut à ${pieces} pièce(s).`;
+        } else {
+            const cartons = Math.floor(qty / factor);
+            const remainingPieces = qty % factor;
+            let text = `Vous avez saisi ${qty} pièce(s)`;
+            if (cartons > 0) {
+                text += `, cela équivaut à ${cartons} carton(s)`;
+                if (remainingPieces > 0) text += ` & ${remainingPieces} pièce(s)`;
+            } else {
+                text += `.`;
+            }
+            feedbackText.innerText = text;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeField = document.getElementById('id_type');
+        const qtyField = document.getElementById('id_quantity');
+        const unitField = document.getElementById('id_input_unit');
+        const productField = document.getElementById('id_product');
+
+        if (typeField) {
+            toggleTransferField(typeField.value);
+            typeField.addEventListener('change', (e) => toggleTransferField(e.target.value));
+        }
+        
+        if (qtyField) qtyField.addEventListener('input', updateConversionFeedback);
+        if (unitField) unitField.addEventListener('change', updateConversionFeedback);
+        
+        // Initial HTMX trigger if needed
+        if (productField && productField.value) {
+            setTimeout(() => {
+                if (typeof htmx !== 'undefined') htmx.process(productField);
+            }, 100);
+        }
+    });
+
+    // Handle HTMX events
+    document.addEventListener('htmx:afterOnLoad', function(evt) {
+        if (evt.detail.target.id === 'product-stock-info') {
+            updateConversionFeedback();
+        }
+    });
+</script>
+{% endblock %}

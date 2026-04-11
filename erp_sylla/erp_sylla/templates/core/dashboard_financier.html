@@ -1,10 +1,34 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container">
-    <h1 class="text-danger">Dashboard Financier</h1>
-    <p>Accès restreint aux Gérants uniquement.</p>
-    <div class="alert alert-info">
-        Ici seront affichés les CA, Marges et Bénéfices.
+{% extends "dashboard_base.html" %}
+{% load erp_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h2 class="fw-bold mb-4">Rapports BI & Finances</h2>
+    
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm p-4 bg-primary text-white card-stats">
+                <small class="text-white-50">Chiffre d'Affaires (Jour)</small>
+                <h3 class="fw-bold mb-0">{{ 0|money }}</h3>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm p-4 bg-white card-stats">
+                <small class="text-muted">Marge Brute</small>
+                <h3 class="fw-bold text-success mb-0">{{ 0|money }}</h3>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm p-4 bg-white card-stats">
+                <small class="text-muted">Commandes en attente</small>
+                <h3 class="fw-bold text-dark mb-0">0</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-5 text-center">
+        <p class="text-muted mb-0">Les graphiques et analyses détaillées apparaîtront ici après les premières ventes.</p>
     </div>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}

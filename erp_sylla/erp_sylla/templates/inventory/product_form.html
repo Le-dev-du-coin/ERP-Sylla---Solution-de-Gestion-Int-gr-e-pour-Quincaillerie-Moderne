@@ -1,0 +1,67 @@
+{% extends "dashboard_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'inventory:product-list' %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h2 class="fw-bold mb-0">{% if object %}Modifier{% else %}Nouvel{% endif %} Article</h2>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <h5 class="fw-bold border-bottom pb-2">Informations Générales</h5>
+                                {{ form.name|as_crispy_field }}
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <h5 class="fw-bold border-bottom pb-2">Identification</h5>
+                                {{ form.sku|as_crispy_field }}
+                                {{ form.barcode|as_crispy_field }}
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <h5 class="fw-bold border-bottom pb-2">Paramètres</h5>
+                                {{ form.conversion_factor|as_crispy_field }}
+                                <div class="mt-2">
+                                    {{ form.is_active|as_crispy_field }}
+                                </div>
+                            </div>
+
+                            <div class="col-12 mb-4">
+                                <h5 class="fw-bold border-bottom pb-2 text-primary">Tarification (F CFA)</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        {{ form.purchase_price|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form.sale_price_piece|as_crispy_field }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form.sale_price_carton|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'inventory:product-list' %}" class="btn btn-light px-4 rounded-3">Annuler</a>
+                            <button type="submit" class="btn btn-primary px-5 rounded-3 fw-bold">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

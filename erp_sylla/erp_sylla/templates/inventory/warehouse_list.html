@@ -1,0 +1,78 @@
+{% extends "dashboard_base.html" %}
+{% load erp_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Entrepôts & Magasins</h2>
+        <a href="{% url 'inventory:warehouse-add' %}" class="btn btn-primary rounded-3 px-4">
+            <i class="fas fa-plus me-2"></i> Nouvel Entrepôt
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for warehouse in warehouses %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 warehouse-card position-relative overflow-hidden">
+                <!-- Lien principal sur toute la carte -->
+                <a href="{% url 'inventory:warehouse-detail' warehouse.pk %}" class="stretched-link"></a>
+                
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fas fa-warehouse text-primary"></i>
+                        </div>
+                        
+                        <!-- Boutons d'actions (positionnés au-dessus du lien stretched) -->
+                        <div class="d-flex gap-2 position-relative" style="z-index: 2;">
+                            <a href="{% url 'inventory:warehouse-edit' warehouse.pk %}" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Modifier">
+                                <i class="fas fa-edit text-primary"></i>
+                            </a>
+                            {% if warehouse.total_stock_value == 0 %}
+                            <a href="{% url 'inventory:warehouse-delete' warehouse.pk %}" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Supprimer">
+                                <i class="fas fa-trash text-danger"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-dark mb-1">{{ warehouse.name }}</h5>
+                    <p class="text-muted small mb-4">
+                        <i class="fas fa-map-marker-alt me-1"></i> {{ warehouse.location|default:"Aucune adresse spécifiée" }}
+                    </p>
+                    
+                        <div class="row text-center border-top pt-3 mt-auto">
+                            <div class="col-6 border-end">
+                                <small class="text-muted d-block" style="font-size: 0.7rem;">Valeur Stock</small>
+                                <span class="fw-bold text-primary">{{ warehouse.annotated_value|default:0|money }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block" style="font-size: 0.7rem;">Références</small>
+                                <span class="fw-bold text-dark">{{ warehouse.annotated_products_count|default:0 }} articles</span>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm p-5 text-center">
+                <p class="text-muted mb-0">Aucun entrepôt configuré.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .warehouse-card { 
+        transition: all 0.3s ease; 
+        border: 1px solid transparent !important;
+    }
+    .warehouse-card:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+        border-color: #0d6efd !important;
+    }
+</style>
+{% endblock %}

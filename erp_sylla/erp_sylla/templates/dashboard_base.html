@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navbar %}{% endblock navbar %}
+
+{% block css %}
+{{ block.super }}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet" />
+{% endblock css %}
+
+{% block body %}
+<div id="wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header border-bottom border-secondary border-opacity-25">
+            <h5 class="mb-0 fw-bold">ERP Sylla</h5>
+            <small class="text-muted">{{ request.user.get_role_display }}</small>
+        </div>
+
+        <ul class="list-unstyled components">
+            <li class="{% if request.resolver_match.view_name == 'users:redirect' %}active{% endif %}">
+                <a href="{% url 'users:redirect' %}"><i class="fas fa-th-large me-2"></i> Dashboard</a>
+            </li>
+            
+            {% if request.user.role == "VENDEUR" or request.user.role == "GERANT" or request.user.is_superuser %}
+            <li>
+                <a href="{% url 'core:pos' %}"><i class="fas fa-cash-register me-2"></i> Point de Vente</a>
+            </li>
+            <li>
+                <a href="{% url 'inventory:product-list' %}"><i class="fas fa-boxes me-2"></i> Catalogue</a>
+            </li>
+            <li>
+                <a href="{% url 'inventory:warehouse-list' %}"><i class="fas fa-warehouse me-2"></i> Entrepôts & Stocks</a>
+            </li>
+            {% endif %}
+
+            {% if request.user.role == "GERANT" or request.user.is_superuser %}
+            <li class="mt-4 px-3 text-uppercase x-small text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Administration</li>
+            <li>
+                <a href="{% url 'core:finance' %}"><i class="fas fa-chart-line me-2"></i> Rapports BI</a>
+            </li>
+            <li>
+                <a href="{% url 'admin:index' %}"><i class="fas fa-user-cog me-2"></i> Panel Admin</a>
+            </li>
+            {% endif %}
+        </ul>
+
+        <div class="sidebar-footer position-absolute bottom-0 w-100 p-3 border-top border-secondary border-opacity-25">
+            <a href="{% url 'account_logout' %}" class="text-decoration-none text-danger small">
+                <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
+            </a>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="content">
+        <nav class="navbar navbar-expand-lg navbar-light bg-transparent mb-4">
+            <div class="container-fluid p-0">
+                <button type="button" id="sidebarCollapse" class="btn btn-white shadow-sm border rounded-3 me-3">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="ms-auto d-flex align-items-center">
+                    <span class="me-3 d-none d-md-block small text-muted">{{ request.user.username }}</span>
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                        <i class="fas fa-user text-primary small"></i>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %} shadow-sm border-0">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block dashboard_content %}{% endblock dashboard_content %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('sidebarCollapse').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+    });
+</script>
+{% endblock body %}

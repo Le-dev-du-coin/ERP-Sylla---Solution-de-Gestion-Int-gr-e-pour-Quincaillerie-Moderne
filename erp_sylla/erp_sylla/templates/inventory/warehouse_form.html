@@ -1,0 +1,36 @@
+{% extends "dashboard_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-6">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'inventory:warehouse-list' %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h2 class="fw-bold mb-0">{% if object %}Modifier{% else %}Nouvel{% endif %} Entrepôt</h2>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        {{ form.name|as_crispy_field }}
+                        {{ form.location|as_crispy_field }}
+                        <div class="mb-4">
+                            {{ form.is_active|as_crispy_field }}
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-bold py-2">Enregistrer l'entrepôt</button>
+                            <a href="{% url 'inventory:warehouse-list' %}" class="btn btn-light rounded-3">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
