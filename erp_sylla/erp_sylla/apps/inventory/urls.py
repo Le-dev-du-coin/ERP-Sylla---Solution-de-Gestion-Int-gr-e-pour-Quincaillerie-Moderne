@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     ProductListView, StockStatusView, ProductCreateView, ProductUpdateView, ProductDeleteView,
     StockTransactionCreateView, WarehouseListView, WarehouseCreateView, WarehouseUpdateView, 
-    WarehouseDetailView, WarehouseDeleteView, get_product_stock_info
+    WarehouseDetailView, WarehouseDeleteView, get_product_stock_info, LowStockListView
 )
 
 app_name = "inventory"
@@ -13,7 +13,9 @@ urlpatterns = [
     path("products/<int:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"),
     
     path("stock/", StockStatusView.as_view(), name="stock-status"),
+    path("stock/alerts/", LowStockListView.as_view(), name="stock-alerts"),
     path("stock/add/", StockTransactionCreateView.as_view(), name="stock-transaction-add"),
+
     path("ajax/product-info/", get_product_stock_info, name="ajax-product-info"),
     
     path("warehouses/", WarehouseListView.as_view(), name="warehouse-list"),

@@ -1,0 +1,64 @@
+{% extends "dashboard_base.html" %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Gestion des Agents & Vendeurs</h2>
+        <a href="{% url 'users:agent-add' %}" class="btn btn-primary rounded-3 px-4">
+            <i class="fas fa-user-plus me-2"></i> Nouvel Agent
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Utilisateur</th>
+                        <th>Nom Complet</th>
+                        <th class="text-center">Rôle</th>
+                        <th class="text-center">Boutique</th>
+                        <th class="text-center">Statut</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for agent in agents %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ agent.username }}</div>
+                            <small class="text-muted">{{ agent.email }}</small>
+                        </td>
+                        <td>{{ agent.name|default:"-" }}</td>
+                        <td class="text-center">
+                            <span class="badge {% if agent.role == 'GERANT' %}bg-primary{% else %}bg-info{% endif %} rounded-pill px-3">
+                                {{ agent.get_role_display }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            {% if agent.assigned_warehouse %}
+                            <span class="text-dark small"><i class="fas fa-store me-1 text-muted"></i> {{ agent.assigned_warehouse.name }}</span>
+                            {% else %}
+                            <span class="text-muted small italic">Non assigné</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if agent.is_active %}
+                            <span class="text-success small fw-bold">Actif</span>
+                            {% else %}
+                            <span class="text-danger small fw-bold">Désactivé</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'users:agent-edit' agent.pk %}" class="btn btn-light btn-sm rounded-circle shadow-sm">
+                                <i class="fas fa-user-edit text-primary"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

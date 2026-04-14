@@ -1,0 +1,29 @@
+{% extends "dashboard_base.html" %}
+
+{% block dashboard_content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-5">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-circle fa-4x text-danger opacity-25"></i>
+                </div>
+                <h2 class="fw-bold mb-3">Supprimer cette transaction ?</h2>
+                <p class="text-muted mb-4">Attention : La suppression de la transaction <strong>{{ object.invoice_number }}</strong> est irréversible. 
+                {% if object.type == 'SALE' %}
+                <br><span class="text-danger fw-bold">Note : Le stock ne sera pas ré-incrémenté automatiquement. Utilisez un ajustement de stock si nécessaire.</span>
+                {% endif %}
+                </p>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg rounded-3 fw-bold">Confirmer la suppression</button>
+                        <a href="{% url 'sales:sale-list' %}" class="btn btn-light rounded-3">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

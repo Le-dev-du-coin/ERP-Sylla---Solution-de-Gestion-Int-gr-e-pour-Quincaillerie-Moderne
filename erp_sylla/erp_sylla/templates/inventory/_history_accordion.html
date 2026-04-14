@@ -33,7 +33,9 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-truncate" style="max-width: 250px;">
-                                    {% if entry.history_type == "~" %}
+                                    {% if entry.history_change_reason %}
+                                        <span class="fw-bold">{{ entry.history_change_reason }}</span>
+                                    {% elif entry.history_type == "~" %}
                                         {% for field, value in entry.changes_display.items %}
                                             <strong>{{ field }}:</strong> {{ value }} 
                                         {% endfor %}

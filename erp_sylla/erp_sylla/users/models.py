@@ -28,6 +28,14 @@ class User(AbstractUser):
         default=Roles.VENDEUR,
     )
 
+    assigned_warehouse = models.ForeignKey(
+        "inventory.Warehouse",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Magasin/Boutique d'affectation")
+    )
+
     def save(self, *args, **kwargs):
         is_new = self._state.adding
         super().save(*args, **kwargs)

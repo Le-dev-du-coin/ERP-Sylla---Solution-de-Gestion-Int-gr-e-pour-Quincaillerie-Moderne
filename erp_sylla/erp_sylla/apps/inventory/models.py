@@ -25,6 +25,27 @@ class Product(models.Model):
         default=1
     )
     
+    low_stock_threshold = models.PositiveIntegerField(
+        _("Seuil d'alerte global (pièces)"),
+        default=5
+    )
+    
+    alert_threshold_cartons = models.PositiveIntegerField(
+        _("Alerte Stock (Cartons)"),
+        default=0,
+        blank=True,
+        null=True,
+        help_text=_("Déclencher une alerte s'il reste moins de X cartons.")
+    )
+
+    alert_threshold_pieces = models.PositiveIntegerField(
+        _("Alerte Stock (Pièces)"),
+        default=5,
+        blank=True,
+        null=True,
+        help_text=_("Déclencher une alerte s'il reste moins de X pièces.")
+    )
+    
     is_active = models.BooleanField(_("Actif"), default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -37,23 +58,44 @@ class Product(models.Model):
         ordering = ["name"]
 
     def save(self, *args, **kwargs):
+        # Calcul automatique du seuil global en pièces (gestion des Nones)
+        cartons = self.alert_threshold_cartons or 0
+        pieces = self.alert_threshold_pieces or 0
+        self.low_stock_threshold = (cartons * self.conversion_factor) + pieces
+        
         if self.pk:
             # On récupère l'ancienne version pour comparer
             old_instance = Product.objects.get(pk=self.pk)
-            # Si le nom a changé ET que l'utilisateur n'a pas manuellement modifié le SKU
+            reasons = []
+            
+            # Détection des changements pour le message d'historique
+            if old_instance.name != self.name:
+                reasons.append(f"Nom changé: {old_instance.name} -> {self.name}")
+            if old_instance.purchase_price != self.purchase_price:
+                reasons.append(f"Prix achat: {old_instance.purchase_price} -> {self.purchase_price}")
+            if old_instance.sale_price_piece != self.sale_price_piece:
+                reasons.append(f"Prix pièce: {old_instance.sale_price_piece} -> {self.sale_price_piece}")
+            
+            # On assigne le message à l'historique
+            self._history_change_reason = ", ".join(reasons) if reasons else "Mise à jour des informations"
+            
+            # Logique SKU
             if old_instance.name != self.name and old_instance.sku == self.sku:
                 import uuid
                 from django.utils.text import slugify
                 suffix = str(uuid.uuid4())[:4].upper()
                 self.sku = f"{slugify(self.name).upper()}-{suffix}"
-        elif not self.sku:
-            # Nouveau produit sans SKU spécifié
-            import uuid
-            from django.utils.text import slugify
-            suffix = str(uuid.uuid4())[:4].upper()
-            self.sku = f"{slugify(self.name).upper()}-{suffix}"
+        else:
+            # Nouveau produit
+            self._history_change_reason = "Création initiale de l'article"
+            if not self.sku:
+                import uuid
+                from django.utils.text import slugify
+                suffix = str(uuid.uuid4())[:4].upper()
+                self.sku = f"{slugify(self.name).upper()}-{suffix}"
             
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f"{self.name} ({self.sku})"
@@ -168,5 +210,13 @@ class StockTransaction(models.Model):
 
     def __str__(self):
         return f"{self.get_type_display()} : {self.quantity} x {self.product.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self._history_change_reason = f"Enregistrement {self.get_type_display()} ({self.quantity} pcs)"
+        else:
+            self._history_change_reason = f"Modification du mouvement"
+        super().save(*args, **kwargs)
+
 
 

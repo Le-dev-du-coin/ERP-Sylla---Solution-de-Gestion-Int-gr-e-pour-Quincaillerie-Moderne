@@ -11,6 +11,7 @@
             </span>
             <input type="text" 
                    name="q" 
+                   id="pos-search-input"
                    class="form-control border-0 bg-transparent shadow-none" 
                    placeholder="Rechercher un article..."
                    hx-get="{% url 'sales:ajax-product-search' %}"
@@ -23,45 +24,33 @@
         </div>
     </div>
 
-    <div class="row g-4 px-3">
+    <div class="row g-4 px-3 pb-5">
         <!-- Zone des Résultats de Recherche -->
         <div class="col-12 col-lg-8">
-            <div id="search-results">
-                <div class="text-center py-5 text-muted">
+            <div id="search-results" style="max-height: calc(100vh - 200px); overflow-y: auto; padding-bottom: 50px;">
+                <div class="text-center py-5 text-muted bg-white rounded-4 shadow-sm">
                     <i class="fas fa-barcode fa-3x mb-3 opacity-25"></i>
                     <p>Saisissez le nom ou la référence d'un article pour commencer la vente.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Zone du Panier (Sidebar à droite sur desktop, flottant en bas sur mobile) -->
+        <!-- Zone du Panier -->
         <div class="col-12 col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 sticky-lg-top" style="top: 100px;">
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold">Panier</h5>
-                    <span class="badge bg-primary rounded-pill">0 articles</span>
+                    <div id="cart-counter-container">
+                        <span class="badge bg-primary rounded-pill">{{ basket.total_items }} article{{ basket.total_items|pluralize }}</span>
+                    </div>
                 </div>
                 <div class="card-body p-0">
-                    <div id="cart-items" style="min-height: 200px;">
-                        <div class="text-center py-5 text-muted">
-                            <p class="small mb-0">Le panier est vide.</p>
-                        </div>
+                    <div id="cart-container">
+                        {% include "sales/_cart_detail.html" %}
                     </div>
                 </div>
-                <div class="card-footer bg-light p-4">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Total HT</span>
-                        <span class="fw-bold">0 F CFA</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-4 fs-4 fw-bold text-dark border-top pt-2">
-                        <span>Total NET</span>
-                        <span class="text-success">0 F CFA</span>
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-success btn-lg rounded-3 fw-bold py-3 shadow-sm" disabled>
-                            <i class="fas fa-check-circle me-2"></i> Valider la vente
-                        </button>
-                    </div>
+                <div id="cart-summary">
+                    <!-- Le footer est géré par le fragment _cart_detail.html via OOB -->
                 </div>
             </div>
         </div>
@@ -73,11 +62,21 @@
     #content { padding-top: 0 !important; }
     .search-spinner { display: none; }
     .htmx-request .search-spinner { display: block; }
-    .product-result-card { transition: all 0.2s; cursor: pointer; }
-    .product-result-card:hover { transform: scale(1.01); background-color: #f8fafc; }
+    .product-result-card { transition: all 0.2s; }
+    .product-result-card:hover { transform: scale(1.005); background-color: #f8fafc; }
     
     @media (max-width: 991px) {
         .sticky-top { top: 0 !important; margin-top: 0 !important; }
     }
 </style>
+
+<!-- Script minimaliste et sécurisé pour le POS -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // CSRF Token Setup for HTMX
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+    });
+</script>
 {% endblock %}

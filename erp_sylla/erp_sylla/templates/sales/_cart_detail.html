@@ -1,0 +1,77 @@
+{% load erp_tags %}
+
+<div id="cart-container">
+    <!-- Zone scrollable des articles -->
+    <div id="cart-items-scroll" class="p-0" style="max-height: 450px; overflow-y: auto; overflow-x: hidden;">
+        {% for item in basket %}
+        <div class="p-3 border-bottom position-relative bg-white">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="pe-4">
+                    <h6 class="fw-bold mb-0 text-dark small">{{ item.name }}</h6>
+                    <div class="d-flex gap-1 mt-1">
+                        <span class="badge bg-light text-muted border x-small" style="font-size: 0.6rem;">{{ item.sku }}</span>
+                        <span class="badge {% if item.unit == 'CARTON' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %} x-small" style="font-size: 0.6rem;">
+                            {{ item.unit }}
+                        </span>
+                    </div>
+                </div>
+                <button class="btn-close small position-absolute top-0 end-0 m-2" 
+                        style="font-size: 0.6rem;"
+                        hx-post="{% url 'sales:ajax-cart-remove' item.product_id item.unit %}"
+                        hx-target="#cart-container"
+                        hx-swap="outerHTML"></button>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group btn-group-sm border rounded-pill overflow-hidden bg-light shadow-none">
+                    <button class="btn btn-light px-2 py-1"
+                            hx-post="{% url 'sales:ajax-cart-update' item.product_id item.unit %}"
+                            hx-vals='{"action": "minus"}'
+                            hx-target="#cart-container"
+                            hx-swap="outerHTML">
+                        <i class="fas fa-minus" style="font-size: 0.7rem;"></i>
+                    </button>
+                    <span class="px-2 fw-bold align-self-center small">{{ item.quantity }}</span>
+                    <button class="btn btn-light px-2 py-1"
+                            hx-post="{% url 'sales:ajax-cart-update' item.product_id item.unit %}"
+                            hx-vals='{"action": "plus"}'
+                            hx-target="#cart-container"
+                            hx-swap="outerHTML">
+                        <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
+                    </button>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold text-dark small">{{ item.total_line|money }}</div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-shopping-basket fa-2x mb-2 opacity-25"></i>
+            <p class="small mb-0">Le panier est vide.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Footer financier (Recalculé) -->
+    <div id="cart-summary" hx-swap-oob="true">
+        <div class="card-footer bg-light p-4 border-0">
+            <div class="d-flex justify-content-between mb-3 fs-4 fw-bold text-dark border-top pt-3">
+                <span class="small">Total NET</span>
+                <span class="text-success">{{ basket.total_price|money }}</span>
+            </div>
+            <div class="d-grid gap-2">
+                <a href="{% url 'sales:checkout' %}" class="btn btn-success btn-lg rounded-3 fw-bold py-3 shadow-sm {% if not basket.total_items %}disabled{% endif %}">
+                    <i class="fas fa-check-circle me-2"></i> Valider la vente
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mise à jour dynamique du compteur dans le header (uniquement via AJAX) -->
+    {% if is_htmx %}
+    <div id="cart-counter-container" hx-swap-oob="true">
+        <span class="badge bg-primary rounded-pill">{{ basket.total_items }} article{{ basket.total_items|pluralize }}</span>
+    </div>
+    {% endif %}
+</div>

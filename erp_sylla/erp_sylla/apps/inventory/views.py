@@ -5,6 +5,7 @@ from django.db import models, transaction
 from django.db.models import Sum, F, ExpressionWrapper, IntegerField
 from .models import Product, Warehouse, StockTransaction
 from .forms import ProductForm, StockTransactionForm
+from erp_sylla.apps.core.permissions import GerantRequiredMixin
 
 
 class ProductListView(LoginRequiredMixin, ListView):
@@ -40,13 +41,25 @@ class ProductDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "inventory/product_confirm_delete.html"
     success_url = reverse_lazy("inventory:product-list")
 
-
 class StockStatusView(LoginRequiredMixin, ListView):
-    """Affiche l'état global des stocks par article."""
     model = Product
     template_name = "inventory/stock_status.html"
     context_object_name = "products"
     paginate_by = 50
+
+class LowStockListView(GerantRequiredMixin, ListView):
+    """Affiche les articles en alerte de stock."""
+    model = Product
+    template_name = "inventory/low_stock_list.html"
+    context_object_name = "products"
+
+    def get_queryset(self):
+        # Optimisation : une seule requête SQL avec annotation et filtre
+        return Product.objects.annotate(
+            total_stock_calc=Sum("stock_transactions__quantity")
+        ).filter(
+            total_stock_calc__lte=F("low_stock_threshold")
+        )
 
 
 class StockTransactionCreateView(LoginRequiredMixin, CreateView):

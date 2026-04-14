@@ -25,14 +25,22 @@
                             </div>
                             
                             <div class="col-md-6 mb-4">
-                                <h5 class="fw-bold border-bottom pb-2">Identification</h5>
+                                <h5 class="fw-bold border-bottom pb-2">Identification & Logistique</h5>
                                 {{ form.sku|as_crispy_field }}
                                 {{ form.barcode|as_crispy_field }}
+                                {{ form.conversion_factor|as_crispy_field }}
                             </div>
 
                             <div class="col-md-6 mb-4">
-                                <h5 class="fw-bold border-bottom pb-2">Paramètres</h5>
-                                {{ form.conversion_factor|as_crispy_field }}
+                                <h5 class="fw-bold border-bottom pb-2 text-danger">Alertes de Stock</h5>
+                                <div class="row">
+                                    <div class="col-6">
+                                        {{ form.alert_threshold_cartons|as_crispy_field }}
+                                    </div>
+                                    <div class="col-6">
+                                        {{ form.alert_threshold_pieces|as_crispy_field }}
+                                    </div>
+                                </div>
                                 <div class="mt-2">
                                     {{ form.is_active|as_crispy_field }}
                                 </div>

@@ -1,0 +1,57 @@
+{% extends "dashboard_base.html" %}
+{% load erp_tags %}
+
+{% block dashboard_content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 text-center">
+            <div class="mb-4">
+                <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px;">
+                    <i class="fas fa-check fa-3x text-success"></i>
+                </div>
+            </div>
+            
+            <h1 class="fw-bold text-dark mb-2">Transaction Réussie !</h1>
+            <p class="text-muted mb-5">La {{ sale.get_type_display|lower }} a été enregistrée avec succès.</p>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-5 text-start">
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                    <span class="text-muted">Référence</span>
+                    <span class="fw-bold">{{ sale.invoice_number }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                    <span class="text-muted">Type</span>
+                    <span class="badge {% if sale.type == 'SALE' %}bg-success{% else %}bg-warning{% endif %}">{{ sale.get_type_display }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                    <span class="text-muted">Montant</span>
+                    <span class="fw-bold text-primary">{{ sale.total_amount|money }}</span>
+                </div>
+                {% if sale.type == 'SALE' %}
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Mode de paiement</span>
+                    <span class="fw-bold">{{ sale.get_payment_method_display }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="d-grid gap-3">
+                <button class="btn btn-primary btn-lg py-3 rounded-pill fw-bold shadow" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i> IMPRIMER LE REÇU
+                </button>
+                <a href="{% url 'sales:pos' %}" class="btn btn-outline-secondary btn-lg py-3 rounded-pill fw-bold">
+                    <i class="fas fa-cart-plus me-2"></i> NOUVELLE VENTE
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        #sidebar, .navbar, .btn, .text-muted { display: none !important; }
+        .card { box-shadow: none !important; border: 1px solid #eee !important; }
+        .container { width: 100% !important; max-width: 100% !important; padding: 0 !important; }
+    }
+</style>
+{% endblock %}

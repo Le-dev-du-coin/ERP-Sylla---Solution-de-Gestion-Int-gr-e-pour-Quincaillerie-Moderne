@@ -21,13 +21,19 @@
             <li class="{% if request.resolver_match.view_name == 'users:redirect' %}active{% endif %}">
                 <a href="{% url 'users:redirect' %}"><i class="fas fa-th-large me-2"></i> Dashboard</a>
             </li>
+            <li>
+                <a href="{% url 'inventory:product-list' %}"><i class="fas fa-boxes me-2"></i> Catalogue</a>
+            </li>
+            <li>
+                <a href="{% url 'inventory:stock-status' %}"><i class="fas fa-layer-group me-2"></i> Statut Global Stock</a>
+            </li>
             
             {% if request.user.role == "VENDEUR" or request.user.role == "GERANT" or request.user.is_superuser %}
             <li>
-                <a href="{% url 'core:pos' %}"><i class="fas fa-cash-register me-2"></i> Point de Vente</a>
+                <a href="{% url 'sales:pos' %}"><i class="fas fa-cash-register me-2"></i> Point de Vente</a>
             </li>
             <li>
-                <a href="{% url 'inventory:product-list' %}"><i class="fas fa-boxes me-2"></i> Catalogue</a>
+                <a href="{% url 'sales:sale-list' %}"><i class="fas fa-history me-2"></i> Historique Ventes</a>
             </li>
             <li>
                 <a href="{% url 'inventory:warehouse-list' %}"><i class="fas fa-warehouse me-2"></i> Entrepôts & Stocks</a>
@@ -37,10 +43,16 @@
             {% if request.user.role == "GERANT" or request.user.is_superuser %}
             <li class="mt-4 px-3 text-uppercase x-small text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Administration</li>
             <li>
+                <a href="{% url 'inventory:stock-alerts' %}"><i class="fas fa-exclamation-circle me-2 text-danger"></i> Alertes Stock</a>
+            </li>
+            <li>
+                <a href="{% url 'users:agent-list' %}"><i class="fas fa-users-cog me-2"></i> Gestion des Agents</a>
+            </li>
+            <li>
                 <a href="{% url 'core:finance' %}"><i class="fas fa-chart-line me-2"></i> Rapports BI</a>
             </li>
             <li>
-                <a href="{% url 'admin:index' %}"><i class="fas fa-user-cog me-2"></i> Panel Admin</a>
+                <a href="{% url 'admin:index' %}" target="_blank"><i class="fas fa-user-cog me-2"></i> Panel Admin</a>
             </li>
             {% endif %}
         </ul>

@@ -8,7 +8,9 @@
                 <h6 class="fw-bold mb-1 text-dark">{{ product.name }}</h6>
                 <div class="d-flex gap-3 align-items-center">
                     <span class="badge bg-light text-muted border small">{{ product.sku }}</span>
-                    <span class="small text-primary fw-bold"><i class="fas fa-warehouse me-1"></i> Stock : {{ product.formatted_stock }}</span>
+                    <span class="small {% if product.local_stock > product.low_stock_threshold %}text-success{% else %}text-danger{% endif %} fw-bold">
+                        <i class="fas fa-warehouse me-1"></i> Stock {{ warehouse.name }} : {{ product.local_formatted_stock }}
+                    </span>
                 </div>
             </div>
             
@@ -29,19 +31,26 @@
                 <div class="btn-group rounded-3 overflow-hidden shadow-sm">
                     <button class="btn btn-success btn-sm px-3 py-2" 
                             title="Ajouter une pièce"
+                            {% if product.local_stock <= 0 %}disabled{% endif %}
                             hx-post="{% url 'sales:ajax-cart-add' product.pk %}"
                             hx-vals='{"unit": "PIECE"}'
-                            hx-target="#cart-items">
+                            hx-target="#cart-container"
+                            hx-swap="outerHTML">
                         <i class="fas fa-plus me-1"></i> Pc
                     </button>
                     <button class="btn btn-outline-success btn-sm px-3 py-2" 
                             title="Ajouter un carton"
+                            {% if product.local_stock < product.conversion_factor %}disabled{% endif %}
                             hx-post="{% url 'sales:ajax-cart-add' product.pk %}"
                             hx-vals='{"unit": "CARTON"}'
-                            hx-target="#cart-items">
+                            hx-target="#cart-container"
+                            hx-swap="outerHTML">
                         <i class="fas fa-box me-1"></i> Ct
                     </button>
                 </div>
+                {% if product.local_stock <= 0 %}
+                <div class="text-danger x-small fw-bold text-center mt-1">Épuisé</div>
+                {% endif %}
             </div>
         </div>
     </div>

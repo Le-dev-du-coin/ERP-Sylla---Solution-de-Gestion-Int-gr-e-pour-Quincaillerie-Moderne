@@ -1,0 +1,60 @@
+{% extends "dashboard_base.html" %}
+{% load erp_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1 text-danger"><i class="fas fa-exclamation-circle me-2"></i>Alertes de Stock</h2>
+        <p class="text-muted">Articles dont le niveau est inférieur aux seuils de sécurité configurés.</p>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-danger bg-opacity-10 text-danger">
+                    <tr>
+                        <th class="ps-4">Désignation</th>
+                        <th class="text-center">Stock Actuel (Pcs)</th>
+                        <th class="text-center">Seuil Configuré</th>
+                        <th class="text-center">État</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ product.name }}</div>
+                            <small class="text-muted">{{ product.sku }} | 1 ct = {{ product.conversion_factor }} pc</small>
+                        </td>
+                        <td class="text-center">
+                            <span class="fs-5 fw-bold text-danger">{{ product.total_stock }}</span>
+                        </td>
+                        <td class="text-center small">
+                            {% if product.alert_threshold_cartons %} {{ product.alert_threshold_cartons }} ct {% endif %}
+                            {% if product.alert_threshold_pieces %} {{ product.alert_threshold_pieces }} pc {% endif %}
+                            <div class="text-muted" style="font-size: 0.7rem;">(Total: {{ product.low_stock_threshold }} pcs)</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-danger rounded-pill px-3">Critique</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'inventory:product-edit' product.pk %}" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                <i class="fas fa-cog me-1"></i> Ajuster Seuil
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3 d-block opacity-25"></i>
+                            Aucune alerte de stock. Tous vos produits sont au-dessus de leurs seuils.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
