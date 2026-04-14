@@ -2,10 +2,12 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db import models, transaction
-from django.db.models import Sum, F, ExpressionWrapper, IntegerField
+from django.db.models import Sum, F, ExpressionWrapper, IntegerField, Value
+from django.db.models.functions import Coalesce
 from .models import Product, Warehouse, StockTransaction
 from .forms import ProductForm, StockTransactionForm
 from erp_sylla.apps.core.permissions import GerantRequiredMixin
+from .forms import ProductThresholdForm
 
 
 class ProductListView(LoginRequiredMixin, ListView):
@@ -55,11 +57,29 @@ class LowStockListView(GerantRequiredMixin, ListView):
 
     def get_queryset(self):
         # Optimisation : une seule requête SQL avec annotation et filtre
+        # Coalesce(..., 0) permet de gérer les articles sans transactions (NULL -> 0)
         return Product.objects.annotate(
-            total_stock_calc=Sum("stock_transactions__quantity")
+            total_stock_calc=Coalesce(Sum("stock_transactions__quantity"), Value(0))
         ).filter(
             total_stock_calc__lte=F("low_stock_threshold")
         )
+
+class ProductThresholdUpdateView(GerantRequiredMixin, UpdateView):
+    model = Product
+    form_class = ProductThresholdForm
+    template_name = "inventory/partials/product_threshold_form.html"
+    
+    def get_success_url(self):
+        return reverse_lazy("inventory:stock-alerts")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.htmx:
+            # Si HTMX, on redirige vers la liste des alertes (rafraîchissement)
+            from django.http import HttpResponse
+            response = HttpResponse("")
+            response["HX-Redirect"] = self.get_success_url()
+        return response
 
 
 class StockTransactionCreateView(LoginRequiredMixin, CreateView):

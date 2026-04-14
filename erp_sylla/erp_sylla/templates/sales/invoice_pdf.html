@@ -1,0 +1,239 @@
+{% load erp_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% if sale.type == 'SALE' %}Facture{% else %}Devis{% endif %} - {{ sale.invoice_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            display: table;
+            width: 100%;
+            margin-bottom: 1.5cm;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+        }
+        .header-column {
+            display: table-cell;
+            vertical-align: top;
+        }
+        .company-info h1 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 22pt;
+            text-transform: uppercase;
+        }
+        .company-info p {
+            margin: 2px 0;
+            font-size: 10pt;
+            color: #555;
+        }
+        .document-title {
+            text-align: right;
+        }
+        .document-title h2 {
+            margin: 0;
+            color: #27ae60;
+            font-size: 18pt;
+        }
+        .details-container {
+            width: 100%;
+            margin-bottom: 1cm;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details-table td {
+            vertical-align: top;
+            width: 50%;
+        }
+        .info-box h3 {
+            font-size: 12pt;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .info-box p {
+            margin: 3px 0;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1cm;
+        }
+        .items-table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            padding: 10px;
+            text-align: left;
+            font-size: 10pt;
+            text-transform: uppercase;
+            color: #495057;
+        }
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .totals-container {
+            float: right;
+            width: 100%;
+            max-width: 480px;
+            margin-top: 20px;
+        }
+        .totals-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .totals-table td {
+            padding: 8px 15px;
+            white-space: nowrap;
+        }
+        .total-row {
+            font-weight: bold;
+            font-size: 14pt; /* Taille diminuée */
+            background-color: #27ae60; /* Couleur verte */
+            color: white;
+        }
+        .total-row td {
+            padding: 10px 15px;
+        }
+        .amount-in-words {
+            clear: both;
+            margin-top: 2.5cm; /* Marge augmentée */
+            font-size: 13pt; /* Taille augmentée */
+            border-left: 4px solid #27ae60;
+            padding-left: 15px;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 9pt;
+            color: #bdc3c7;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .bg-success { background-color: #27ae60; color: white; }
+        .bg-warning { background-color: #f39c12; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-column company-info">
+            <h1>ETS SYLLA MADJOU</h1>
+            <p>Vente de Matériaux de Construction & Quincaillerie Générale</p>
+            <p>Siège : Bamako, Mali</p>
+            <p>Contact : +223 70 00 00 00 / +223 60 00 00 00</p>
+        </div>
+        <div class="header-column document-title">
+            <h2>{% if sale.type == 'SALE' %}FACTURE{% else %}DEVIS{% endif %}</h2>
+            <p><strong>N° : {{ sale.invoice_number }}</strong></p>
+            <p>Date : {{ sale.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+
+    <div class="details-container">
+        <table class="details-table">
+            <tr>
+                <td>
+                    <div class="info-box">
+                        <h3>Client</h3>
+                        <p><strong>Nom :</strong> Client de passage</p>
+                        <p><strong>Type :</strong> Vente au comptoir</p>
+                    </div>
+                </td>
+                <td class="text-right">
+                    <div class="info-box">
+                        <h3>Informations Paiement</h3>
+                        <p><strong>Mode :</strong> {{ sale.get_payment_method_display }}</p>
+                        <p><strong>Statut :</strong> 
+                            <span class="badge {% if sale.status == 'COMPLETED' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ sale.get_status_display }}
+                            </span>
+                        </p>
+                        <p><strong>Vendeur :</strong> {{ sale.seller.get_full_name|default:sale.seller.username }}</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th class="text-right">Qté</th>
+                <th>Unité</th>
+                <th class="text-right">Prix Unitaire</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in sale.items.all %}
+            <tr>
+                <td><strong>{{ item.product.name }}</strong><br><small>{{ item.product.sku }}</small></td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td>{{ item.get_unit_display }}</td>
+                <td class="text-right">{{ item.unit_price|money }}</td>
+                <td class="text-right"><strong>{{ item.total_line|money }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals-container">
+        <table class="totals-table">
+            <tr>
+                <td>Sous-total :</td>
+                <td class="text-right">{{ sale.total_amount|money }}</td>
+            </tr>
+            <tr class="total-row">
+                <td>TOTAL NET À PAYER :</td>
+                <td class="text-right">{{ sale.total_amount|money }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="amount-in-words">
+        <p>
+            <strong>Arrêtée la présente facture à la somme de :</strong> 
+            <span style="font-style: italic; text-transform: capitalize;">{{ sale.total_amount|money }} (Francs CFA)</span>
+        </p>
+    </div>
+
+    {% if sale.type == 'QUOTE' %}
+    <div style="margin-top: 1cm; padding: 15px; border: 1px dashed #f39c12; color: #e67e22; background-color: #fdfaf5; text-align: center; border-radius: 8px;">
+        Ce document est un DEVIS PROFORMA. Il n'a pas valeur de facture et ne peut être utilisé pour le déstockage. 
+        Sa validité est de 7 jours à compter de la date d'émission.
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        Ets Sylla Madjou - Bamako, Mali - Merci pour votre confiance !
+    </div>
+</body>
+</html>

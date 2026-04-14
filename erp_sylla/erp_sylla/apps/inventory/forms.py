@@ -22,6 +22,17 @@ class ProductForm(forms.ModelForm):
             field.widget.attrs.update({"class": "form-control rounded-3"})
         self.fields["is_active"].widget.attrs.update({"class": "form-check-input"})
 
+class ProductThresholdForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ["alert_threshold_cartons", "alert_threshold_pieces"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({"class": "form-control rounded-3"})
+
+
 class StockTransactionForm(forms.ModelForm):
     UNIT_CHOICES = [
         ("PIECE", "Pièce(s)"),

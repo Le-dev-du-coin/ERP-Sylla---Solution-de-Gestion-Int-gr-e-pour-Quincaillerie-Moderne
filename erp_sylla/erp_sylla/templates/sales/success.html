@@ -36,9 +36,9 @@
             </div>
 
             <div class="d-grid gap-3">
-                <button class="btn btn-primary btn-lg py-3 rounded-pill fw-bold shadow" onclick="window.print()">
-                    <i class="fas fa-print me-2"></i> IMPRIMER LE REÇU
-                </button>
+                <a href="{% url 'sales:sale-pdf' sale.pk %}" target="_blank" class="btn btn-primary btn-lg py-3 rounded-pill fw-bold shadow">
+                    <i class="fas fa-file-pdf me-2"></i> AFFICHER LA FACTURE PDF
+                </a>
                 <a href="{% url 'sales:pos' %}" class="btn btn-outline-secondary btn-lg py-3 rounded-pill fw-bold">
                     <i class="fas fa-cart-plus me-2"></i> NOUVELLE VENTE
                 </a>

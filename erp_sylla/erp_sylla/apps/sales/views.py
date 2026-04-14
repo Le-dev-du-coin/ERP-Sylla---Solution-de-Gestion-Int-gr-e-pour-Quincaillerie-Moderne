@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest
+from django_weasyprint import WeasyTemplateResponseMixin
 
 
 class POSView(LoginRequiredMixin, TemplateView):
@@ -213,3 +214,13 @@ def get_product_stock_info(request):
         return HttpResponse(html)
     except (Product.DoesNotExist, Warehouse.DoesNotExist, ValueError):
         return HttpResponse("")
+
+
+class SaleInvoicePDFView(LoginRequiredMixin, WeasyTemplateResponseMixin, DetailView):
+    model = Sale
+    template_name = "sales/invoice_pdf.html"
+    context_object_name = "sale"
+    
+    # Options WeasyPrint pour le nom du fichier
+    def get_pdf_filename(self):
+        return f"Facture-{self.object.invoice_number}.pdf"
