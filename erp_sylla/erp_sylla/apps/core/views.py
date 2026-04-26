@@ -21,6 +21,42 @@ import json
 class POSView(VendeurRequiredMixin, TemplateView):
     template_name = "core/pos.html"
 
+class DashboardVendeurView(VendeurRequiredMixin, TemplateView):
+    """Tableau de bord simplifié pour les vendeurs."""
+    template_name = "core/dashboard_vendeur.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.now().date()
+        
+        # Filtre les ventes du vendeur pour aujourd'hui
+        my_sales = Sale.objects.filter(
+            created_at__date=today, 
+            type=Sale.Types.VENTE,
+            # Supposons qu'il y ait un champ 'created_by' ou similaire dans Sale
+            # Si non, on prend toutes les ventes du jour pour la boutique
+        )
+        
+        context['total_sales_amount'] = my_sales.aggregate(total=Sum('total_amount'))['total'] or 0
+        context['sales_count'] = my_sales.count()
+        
+        # Top produit du jour pour ce vendeur
+        top_item = SaleItem.objects.filter(
+            sale__in=my_sales
+        ).values('product__name').annotate(
+            total_qty=Sum('quantity')
+        ).order_by('-total_qty').first()
+        
+        context['top_product'] = top_item['product__name'] if top_item else "Aucun"
+        
+        # Commandes/Devis en attente (optionnel selon le modèle)
+        context['pending_quotes'] = Sale.objects.filter(
+            type=Sale.Types.DEVIS,
+            status=Sale.Status.PENDING
+        ).count()
+
+        return context
+
 @login_required
 @require_POST
 def validate_code_ajax(request):

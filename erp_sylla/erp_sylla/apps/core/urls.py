@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     DashboardFinancierView, 
+    DashboardVendeurView,
     POSView, 
     validate_code_ajax,
     ExpenseListView,
@@ -15,6 +16,7 @@ from .views import (
 app_name = "core"
 
 urlpatterns = [
+    path("vendeur/", DashboardVendeurView.as_view(), name="vendeur-dashboard"),
     path("finance/", DashboardFinancierView.as_view(), name="finance"),
     path("pos/", POSView.as_view(), name="pos"),
     path("ajax/validate-code/", validate_code_ajax, name="validate-code"),

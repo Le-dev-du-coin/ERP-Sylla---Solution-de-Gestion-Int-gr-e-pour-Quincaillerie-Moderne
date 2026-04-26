@@ -94,7 +94,7 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
         user = self.request.user
         if user.role == "GERANT" or user.is_superuser:
             return reverse("core:finance")
-        return reverse("core:pos")
+        return reverse("core:vendeur-dashboard")
 
 
 user_redirect_view = UserRedirectView.as_view()

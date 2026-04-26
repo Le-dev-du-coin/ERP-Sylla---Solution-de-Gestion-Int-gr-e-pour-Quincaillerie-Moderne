@@ -1,0 +1,90 @@
+{% extends "dashboard_base.html" %}
+{% load erp_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold mb-0">Bienvenue, {{ request.user.username }}</h2>
+            <p class="text-muted small">Voici un aperçu de votre activité aujourd'hui ({{ today|date:"d F Y" }})</p>
+        </div>
+    </div>
+
+    <!-- Statistiques Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-coins text-success"></i>
+                    </div>
+                    <small class="text-muted text-uppercase fw-bold">Ventes du Jour</small>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ total_sales_amount|money }}</h3>
+                <small class="text-muted small">Chiffre d'affaires réalisé</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-shopping-basket text-primary"></i>
+                    </div>
+                    <small class="text-muted text-uppercase fw-bold">Nombre de Ventes</small>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ sales_count }}</h3>
+                <small class="text-muted small">Transactions validées</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <small class="text-muted text-uppercase fw-bold">Top Produit</small>
+                </div>
+                <h3 class="fw-bold text-dark mb-0 text-truncate" title="{{ top_product }}">{{ top_product|truncatechars:15 }}</h3>
+                <small class="text-muted small">Plus vendu par vous</small>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 me-3">
+                        <i class="fas fa-file-invoice text-danger"></i>
+                    </div>
+                    <small class="text-muted text-uppercase fw-bold">Devis en attente</small>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ pending_quotes }}</h3>
+                <small class="text-muted small">À convertir en vente</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Rapides -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-primary text-white">
+                <h5 class="fw-bold mb-3">Besoin de vendre ?</h5>
+                <p class="small text-white text-opacity-75">Accédez instantanément à l'interface de caisse pour enregistrer une nouvelle transaction.</p>
+                <a href="{% url 'sales:pos' %}" class="btn btn-light rounded-pill px-4 fw-bold">
+                    <i class="fas fa-cash-register me-2"></i> OUVRIR LA CAISSE
+                </a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold mb-3">Dernière Vente</h5>
+                <p class="small text-muted">Consultez rapidement l'historique de vos dernières opérations.</p>
+                <a href="{% url 'sales:sale-list' %}" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                    <i class="fas fa-history me-2"></i> VOIR L'HISTORIQUE
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
