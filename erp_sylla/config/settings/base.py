@@ -28,7 +28,7 @@ DEBUG = env.bool("DJANGO_DEBUG", False)
 # In Windows, this must be set to your system time zone.
 TIME_ZONE = "UTC"
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "fr"
 # https://docs.djangoproject.com/en/dev/ref/settings/#languages
 # from django.utils.translation import gettext_lazy as _
 # LANGUAGES = [
@@ -42,6 +42,12 @@ SITE_ID = 1
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
+
+# Custom formats
+USE_L10N = False
+TIME_FORMAT = 'H:i'
+DATE_FORMAT = 'd/m/Y'
+DATETIME_FORMAT = 'd/m/Y H:i'
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(BASE_DIR / "locale")]
 
@@ -75,7 +81,7 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.humanize", # Handy template tags
+    "django.contrib.humanize",
     "django.contrib.admin",
     "django.forms",
 ]
@@ -95,6 +101,7 @@ LOCAL_APPS = [
     "erp_sylla.apps.core",
     "erp_sylla.apps.inventory",
     "erp_sylla.apps.sales",
+    "erp_sylla.apps.communications",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -200,6 +207,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "erp_sylla.users.context_processors.allauth_settings",
+                "erp_sylla.apps.communications.context_processors.erp_settings",
             ],
         },
     },
@@ -335,3 +343,7 @@ SOCIALACCOUNT_FORMS = {"signup": "erp_sylla.users.forms.UserSocialSignupForm"}
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+# WACHAP API CONFIGURATION
+WACHAP_SECRET_KEY = env.str("WACHAP_SECRET_KEY", default="")
+WACHAP_BASE_URL = "https://api.wachap.com/v1/whatsapp/messages/send"
+SITE_DOMAIN = env.str("SITE_DOMAIN", default="localhost:8000")

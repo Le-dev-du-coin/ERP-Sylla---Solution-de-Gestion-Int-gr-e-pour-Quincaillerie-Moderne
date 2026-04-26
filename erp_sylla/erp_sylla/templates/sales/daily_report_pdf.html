@@ -1,0 +1,74 @@
+{% load erp_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport Journalier - {{ date|date:"d/m/Y" }}</title>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Helvetica', sans-serif; font-size: 11pt; color: #333; }
+        .header { border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px; }
+        .title { color: #2c3e50; font-size: 18pt; text-transform: uppercase; }
+        .summary-box { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #27ae60; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #f2f2f2; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        .text-right { text-align: right; }
+        .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 9pt; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Rapport Journalier de Ventes</div>
+        <p>Ets Sylla Madjou | Date : <strong>{{ date|date:"d/m/Y" }}</strong></p>
+    </div>
+
+    <div class="summary-box">
+        <h3 style="margin-top:0;">Synthèse Générale</h3>
+        <p>Nombre de ventes : <strong>{{ sales.count }}</strong></p>
+        <p>Chiffre d'Affaires Total : <strong style="color:#27ae60; font-size: 14pt;">{{ total_day|money }}</strong></p>
+    </div>
+
+    <h3>Détail par Mode de Paiement</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Mode de Paiement</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in payments %}
+            <tr>
+                <td>{{ p.payment_method }}</td>
+                <td class="text-right">{{ p.total|money }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Liste des Transactions</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Réf</th>
+                <th>Vendeur</th>
+                <th class="text-right">Montant</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+            <tr>
+                <td>{{ sale.invoice_number }}</td>
+                <td>{{ sale.seller.username }}</td>
+                <td class="text-right">{{ sale.total_amount|money }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Généré automatiquement par le système ERP Ets Sylla Madjou {{ ERP_VERSION }}.
+    </div>
+</body>
+</html>

@@ -13,11 +13,11 @@
     <!-- Sidebar -->
     <nav id="sidebar">
         <div class="sidebar-header border-bottom border-secondary border-opacity-25">
-            <h5 class="mb-0 fw-bold">ERP Sylla</h5>
+            <h5 class="mb-0 fw-bold">ERP Sylla <small class="text-primary" style="font-size: 0.6rem;">{{ ERP_VERSION }}</small></h5>
             <small class="text-muted">{{ request.user.get_role_display }}</small>
         </div>
 
-        <ul class="list-unstyled components">
+        <ul class="list-unstyled components" hx-boost="true" hx-target="#content" hx-select="#content" hx-swap="innerHTML show:window:top">
             <li class="{% if request.resolver_match.view_name == 'users:redirect' %}active{% endif %}">
                 <a href="{% url 'users:redirect' %}"><i class="fas fa-th-large me-2"></i> Dashboard</a>
             </li>
@@ -35,15 +35,49 @@
             <li>
                 <a href="{% url 'sales:sale-list' %}"><i class="fas fa-history me-2"></i> Historique Ventes</a>
             </li>
+            <li class="{% if request.resolver_match.view_name == 'sales:payment-list' %}active{% endif %}">
+                <a href="{% url 'sales:payment-list' %}"><i class="fas fa-file-invoice-dollar me-2"></i> Historique Paiements</a>
+            </li>
+            <li class="{% if request.resolver_match.view_name == 'sales:customer-list' %}active{% endif %}">
+                <a href="{% url 'sales:customer-list' %}"><i class="fas fa-users me-2"></i> Gestion Clients</a>
+            </li>
             <li>
                 <a href="{% url 'inventory:warehouse-list' %}"><i class="fas fa-warehouse me-2"></i> Entrepôts & Stocks</a>
             </li>
             {% endif %}
 
+            {% if request.user.role == "VENDEUR" or request.user.role == "GERANT" or request.user.is_superuser %}
+            <li class="mt-4 px-3 text-uppercase x-small text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Pilotage & Stocks</li>
+            <li class="{% if request.resolver_match.view_name == 'core:cash-journal' %}active{% endif %}">
+                <a href="{% url 'core:cash-journal' %}"><i class="fas fa-book me-2 text-warning"></i> Journal de Caisse</a>
+            </li>
+            <li class="{% if request.resolver_match.view_name == 'core:expense-list' %}active{% endif %}">
+                <a href="{% url 'core:expense-list' %}"><i class="fas fa-minus-circle me-2 text-danger"></i> Dépenses</a>
+            </li>
+            <li class="{% if request.resolver_match.view_name == 'inventory:stock-alerts' %}active{% endif %}">
+                <a href="{% url 'inventory:stock-alerts' %}"><i class="fas fa-exclamation-circle me-2 text-danger"></i> Alertes Stock</a>
+            </li>
+            
+            <li class="mt-4 px-3 text-uppercase x-small text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Communications</li>
+            <li class="{% if request.resolver_match.view_name == 'communications:notification-dashboard' %}active{% endif %}">
+                <a href="{% url 'communications:notification-dashboard' %}"><i class="fab fa-whatsapp me-2"></i> Suivi WhatsApp</a>
+            </li>
+            {% endif %}
+
             {% if request.user.role == "GERANT" or request.user.is_superuser %}
+            <li class="{% if request.resolver_match.view_name == 'communications:config-update' %}active{% endif %}">
+                <a href="{% url 'communications:config-update' %}"><i class="fas fa-cog me-2"></i> Réglages API</a>
+            </li>
+
             <li class="mt-4 px-3 text-uppercase x-small text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Administration</li>
             <li>
-                <a href="{% url 'inventory:stock-alerts' %}"><i class="fas fa-exclamation-circle me-2 text-danger"></i> Alertes Stock</a>
+                <a href="{% url 'sales:audit-log' %}"><i class="fas fa-fingerprint me-2"></i> Journal d'Audit</a>
+            </li>
+            <li class="{% if request.resolver_match.view_name == 'core:expense-category-list' %}active{% endif %}">
+                <a href="{% url 'core:expense-category-list' %}"><i class="fas fa-tags me-2 text-muted"></i> Catégories Dépenses</a>
+            </li>
+            <li class="{% if request.resolver_match.view_name == 'core:settings-dashboard' %}active{% endif %}">
+                <a href="{% url 'core:settings-dashboard' %}" hx-boost="false"><i class="fas fa-cogs me-2 text-primary"></i> Paramètres Système</a>
             </li>
             <li>
                 <a href="{% url 'users:agent-list' %}"><i class="fas fa-users-cog me-2"></i> Gestion des Agents</a>
@@ -57,10 +91,11 @@
             {% endif %}
         </ul>
 
-        <div class="sidebar-footer position-absolute bottom-0 w-100 p-3 border-top border-secondary border-opacity-25">
+        <div class="sidebar-footer position-absolute bottom-0 w-100 p-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
             <a href="{% url 'account_logout' %}" class="text-decoration-none text-danger small">
                 <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
             </a>
+            <span class="text-muted small" style="font-size: 0.6rem;">{{ ERP_VERSION }}</span>
         </div>
     </nav>
 
@@ -95,8 +130,31 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('sidebarCollapse').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('active');
+        const setupSidebar = () => {
+            const btn = document.getElementById('sidebarCollapse');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    document.getElementById('sidebar').classList.toggle('active');
+                });
+            }
+        };
+
+        setupSidebar();
+
+        // Nettoyage et réinitialisation après un chargement HTMX
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            // Fermeture des modales si présentes
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(b => b.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+
+            // Réinitialiser le bouton sidebar si nécessaire
+            setupSidebar();
+            
+            // Déclencher un événement personnalisé pour informer que la page a été mise à jour
+            window.dispatchEvent(new Event('page-updated'));
         });
     });
 </script>

@@ -1,0 +1,35 @@
+{% extends "dashboard_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block dashboard_content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'core:expense-category-list' %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0">Nouvelle Catégorie</h2>
+                    <p class="text-muted small mb-0">Définissez un nouveau poste de dépense</p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.name|as_crispy_field }}
+                        {{ form.description|as_crispy_field }}
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow">
+                                <i class="fas fa-save me-2"></i> CRÉER LA CATÉGORIE
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

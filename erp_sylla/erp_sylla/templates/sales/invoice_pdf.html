@@ -162,8 +162,14 @@
                 <td>
                     <div class="info-box">
                         <h3>Client</h3>
-                        <p><strong>Nom :</strong> Client de passage</p>
+                        <p><strong>Nom :</strong> {{ sale.customer_name|default:"Client de passage" }}</p>
+                        {% if sale.customer %}
+                        <p><strong>Tel :</strong> {{ sale.customer.phone|default:"-" }}</p>
+                        {% elif sale.customer_phone %}
+                        <p><strong>Tel :</strong> {{ sale.customer_phone }}</p>
+                        {% else %}
                         <p><strong>Type :</strong> Vente au comptoir</p>
+                        {% endif %}
                     </div>
                 </td>
                 <td class="text-right">
@@ -175,7 +181,7 @@
                                 {{ sale.get_status_display }}
                             </span>
                         </p>
-                        <p><strong>Vendeur :</strong> {{ sale.seller.get_full_name|default:sale.seller.username }}</p>
+                        <p><strong>Vendeur :</strong> {{ sale.seller.name|default:sale.seller.username }}</p>
                     </div>
                 </td>
             </tr>
@@ -233,7 +239,8 @@
     {% endif %}
 
     <div class="footer">
-        Ets Sylla Madjou - Bamako, Mali - Merci pour votre confiance !
+        Ets Sylla Madjou - Bamako, Mali - Merci pour votre confiance ! <br>
+        <small style="font-size: 7pt; color: #ccc;">Généré par ERP Sylla {{ ERP_VERSION }}</small>
     </div>
 </body>
 </html>

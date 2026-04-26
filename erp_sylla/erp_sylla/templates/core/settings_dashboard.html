@@ -1,0 +1,103 @@
+{% extends "dashboard_base.html" %}
+{% load static humanize %}
+
+{% block dashboard_content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-0">Paramètres du Système</h2>
+                <p class="text-muted small mb-0">Gestion des configurations et sauvegardes de sécurité</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Section Sauvegardes -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-database me-2 text-primary"></i> Sauvegardes de la Base de Données</h5>
+                    <form action="{% url 'core:create-manual-backup' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary rounded-pill btn-sm px-3">
+                            <i class="fas fa-plus me-2"></i> SAUVEGARDE MANUELLE
+                        </button>
+                    </form>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Date & Heure</th>
+                                    <th>Type</th>
+                                    <th>Taille</th>
+                                    <th>Fichier</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backups %}
+                                <tr>
+                                    <td class="small">{{ backup.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if backup.backup_type == 'MANUAL' %}
+                                            <span class="badge bg-info text-dark">Manuelle</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Automatique</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">{{ backup.file_size|filesizeformat }}</td>
+                                    <td class="small text-truncate" style="max-width: 200px;">{{ backup.file.name }}</td>
+                                    <td class="text-end">
+                                        <a href="{{ backup.file.url }}" class="btn btn-outline-primary btn-sm rounded-circle" download>
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted small">
+                                        Aucune sauvegarde disponible.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Info Système -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-info-circle me-2 text-info"></i> Informations Système</h5>
+                </div>
+                <div class="card-body px-4">
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between px-0 py-3">
+                            <span class="text-muted">Projet</span>
+                            <span class="fw-bold">ERP Ets Sylla Madjou</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-3">
+                            <span class="text-muted">Dernière Sauvegarde</span>
+                            <span class="fw-bold">
+                                {% with last_backup=backups|first %}
+                                    {{ last_backup.created_at|date:"d/m/Y"|default:"Jamais" }}
+                                {% endwith %}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 py-3">
+                            <span class="text-muted">Fréquence Auto</span>
+                            <span class="badge bg-success">Quotidienne</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock dashboard_content %}

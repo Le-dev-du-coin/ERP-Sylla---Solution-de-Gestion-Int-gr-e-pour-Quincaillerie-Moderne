@@ -17,6 +17,17 @@ class AccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request: HttpRequest) -> bool:
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
 
+    def add_message(self, request, level, message_template, message_context=None, extra_tags=""):
+        """Personnalise les messages flash de allauth."""
+        if "account/messages/logged_in.txt" in message_template:
+            from django.contrib import messages
+            user = request.user
+            full_name = user.get_full_name() or user.username
+            custom_message = f"Bienvenue {full_name} ! Vous êtes maintenant connecté à l'ERP Ets Sylla Madjou."
+            return messages.add_message(request, messages.SUCCESS, custom_message, extra_tags=extra_tags)
+        
+        return super().add_message(request, level, message_template, message_context, extra_tags)
+
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(

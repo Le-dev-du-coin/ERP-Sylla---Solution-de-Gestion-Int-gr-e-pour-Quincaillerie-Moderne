@@ -1,0 +1,79 @@
+{% load erp_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu de Paiement - {{ payment.reference }}</title>
+    <style>
+        @page { size: A5 landscape; margin: 1cm; }
+        body { font-family: 'Helvetica', sans-serif; font-size: 10pt; color: #333; }
+        .header { border-bottom: 2px solid #27ae60; padding-bottom: 10px; margin-bottom: 15px; }
+        .title { color: #27ae60; font-size: 16pt; font-weight: bold; text-transform: uppercase; }
+        .content { margin-bottom: 20px; }
+        .amount-box { background-color: #f8f9fa; border: 2px solid #27ae60; padding: 15px; text-align: center; border-radius: 8px; margin: 15px 0; }
+        .amount { font-size: 20pt; font-weight: bold; color: #27ae60; }
+        .footer { border-top: 1px solid #eee; padding-top: 10px; margin-top: 20px; text-align: center; font-size: 8pt; color: #999; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 5px 0; }
+        .label { color: #7f8c8d; width: 40%; }
+        .value { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="float: right; text-align: right;">
+            <div class="title">REÇU DE PAIEMENT</div>
+            <div style="font-weight: bold;">N° {{ payment.reference }}</div>
+        </div>
+        <div>
+            <h2 style="margin:0;">ETS SYLLA MADJOU</h2>
+            <div style="font-size: 8pt;">Quincaillerie & Matériaux de Construction</div>
+            <div style="font-size: 8pt;">Bamako, Mali | Tel: +223 70 00 00 00</div>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="content">
+        <p>Reçu de <strong>{{ payment.customer.name }}</strong></p>
+        
+        <div class="amount-box">
+            <div style="font-size: 9pt; text-transform: uppercase; margin-bottom: 5px;">Montant Versé</div>
+            <div class="amount">{{ payment.amount|money }}</div>
+        </div>
+
+        <table>
+            <tr>
+                <td class="label">Mode de paiement :</td>
+                <td class="value">{{ payment.get_payment_method_display }}</td>
+            </tr>
+            <tr>
+                <td class="label">Date du versement :</td>
+                <td class="value">{{ payment.created_at|date:"d/m/Y à H:i" }}</td>
+            </tr>
+            <tr>
+                <td class="label">Motif / Notes :</td>
+                <td class="value">{{ payment.notes|default:"Règlement de dette" }}</td>
+            </tr>
+            <tr style="border-top: 1px dashed #ddd; padding-top: 10px;">
+                <td class="label" style="padding-top:10px;">Reste à payer :</td>
+                <td class="value" style="padding-top:10px; font-size: 12pt; color: #c0392b;">{{ payment.balance_after|money }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 20px; display: table; width: 100%;">
+        <div style="display: table-cell; width: 50%;">
+            <div style="font-size: 8pt; text-decoration: underline; margin-bottom: 40px;">Signature Client</div>
+            <div>_________________</div>
+        </div>
+        <div style="display: table-cell; width: 50%; text-align: right;">
+            <div style="font-size: 8pt; text-decoration: underline; margin-bottom: 40px;">Signature Caissier</div>
+            <div>_________________</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Merci pour votre règlement. Document généré par ERP Sylla.
+    </div>
+</body>
+</html>

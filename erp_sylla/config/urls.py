@@ -25,6 +25,7 @@ urlpatterns = [
     path("core/", include("erp_sylla.apps.core.urls", namespace="core")),
     path("inventory/", include("erp_sylla.apps.inventory.urls", namespace="inventory")),
     path("sales/", include("erp_sylla.apps.sales.urls", namespace="sales")),
+    path("communications/", include("erp_sylla.apps.communications.urls", namespace="communications")),
     # ...
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),

@@ -1,0 +1,114 @@
+{% load erp_tags %}
+
+<!-- Synthèse Financière -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1">Total Entrées</small>
+            <h2 class="fw-bold text-success mb-0">+ {{ total_in|money }}</h2>
+            <div class="mt-2">
+                {% for item in payment_summary %}
+                <div class="d-flex justify-content-between x-small border-bottom py-1">
+                    <span class="text-muted">{{ item.label }}</span>
+                    <span class="fw-bold">{{ item.total|money }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+            <small class="text-muted text-uppercase fw-bold d-block mb-1">Total Sorties</small>
+            <h2 class="fw-bold text-danger mb-0">- {{ total_out|money }}</h2>
+            <p class="small text-muted mt-2 mb-0">Toutes dépenses confondues</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-primary text-white">
+            <small class="text-white text-opacity-75 text-uppercase fw-bold d-block mb-1">Solde Net Période</small>
+            <h2 class="fw-bold mb-0">{{ net_balance|money }}</h2>
+            <p class="small text-white text-opacity-75 mt-2 mb-0">Flux net de trésorerie</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Détail des Entrées -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold mb-0 text-success"><i class="fas fa-arrow-down me-2"></i> ENTRÉES (RECRUES)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 table-sm">
+                        <thead class="bg-light text-muted x-small text-uppercase">
+                            <tr>
+                                <th class="ps-3">Réf / Type</th>
+                                <th class="text-end pe-3">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in sales_in %}
+                            <tr>
+                                <td class="ps-3 py-2">
+                                    <div class="small fw-bold">{{ sale.invoice_number }}</div>
+                                    <div class="x-small text-muted">Vente ({{ sale.get_payment_method_display }}) - {{ sale.created_at|date:"d/m" }}</div>
+                                </td>
+                                <td class="text-end pe-3 small fw-bold text-success">+ {{ sale.total_amount|money }}</td>
+                            </tr>
+                            {% empty %}
+                                {% if not payments_in %}
+                                <tr><td colspan="2" class="text-center py-4 text-muted small">Aucune entrée</td></tr>
+                                {% endif %}
+                            {% endfor %}
+                            {% for payment in payments_in %}
+                            <tr>
+                                <td class="ps-3 py-2">
+                                    <div class="small fw-bold">{{ payment.reference|default:"Paiement" }}</div>
+                                    <div class="x-small text-muted">Versement : {{ payment.customer.name }} - {{ payment.created_at|date:"d/m" }}</div>
+                                </td>
+                                <td class="text-end pe-3 small fw-bold text-success">+ {{ payment.amount|money }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détail des Sorties -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold mb-0 text-danger"><i class="fas fa-arrow-up me-2"></i> SORTIES (DÉPENSES)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 table-sm">
+                        <thead class="bg-light text-muted x-small text-uppercase">
+                            <tr>
+                                <th class="ps-3">Motif / Catégorie</th>
+                                <th class="text-end pe-3">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in expenses_out %}
+                            <tr>
+                                <td class="ps-3 py-2">
+                                    <div class="small fw-bold">{{ expense.title }}</div>
+                                    <div class="x-small text-muted">{{ expense.category.name }} - {{ expense.date|date:"d/m" }}</div>
+                                </td>
+                                <td class="text-end pe-3 small fw-bold text-danger">- {{ expense.amount|money }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center py-4 text-muted small">Aucune sortie</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

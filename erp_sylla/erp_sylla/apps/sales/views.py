@@ -1,11 +1,12 @@
-from django.views.generic import TemplateView, ListView, DetailView, DeleteView
+from django.views import View
+from django.views.generic import TemplateView, ListView, DetailView, DeleteView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from erp_sylla.apps.core.permissions import GerantRequiredMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.shortcuts import render, redirect
 from django.db.models import Q
 from erp_sylla.apps.inventory.models import Product, Warehouse
-from .models import Sale, SaleItem
+from .models import Sale, SaleItem, Customer, Payment
 
 from .cart import Basket
 from django.views.decorators.http import require_POST
@@ -30,9 +31,7 @@ class CheckoutView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["basket"] = Basket(self.request)
-        # On ne propose les entrepôts que si le vendeur n'en a pas d'assigné
-        if not self.request.user.assigned_warehouse:
-            context["warehouses"] = Warehouse.objects.filter(is_active=True)
+        context["assigned_warehouse"] = self.request.user.assigned_warehouse
         return context
 
     def post(self, request, *args, **kwargs):
@@ -45,16 +44,19 @@ class CheckoutView(LoginRequiredMixin, TemplateView):
         # Récupération des données du formulaire
         payment_method = request.POST.get("payment_method", "CASH")
         sale_type = request.POST.get("sale_type", "SALE")
+        customer_phone = request.POST.get("customer_phone", "").strip()
+        customer_name = request.POST.get("customer_name", "").strip()
+        customer_id = request.POST.get("customer_id")
         
-        # Logique de sélection automatique de l'entrepôt
-        if request.user.assigned_warehouse:
-            warehouse_id = request.user.assigned_warehouse.id
-        else:
-            warehouse_id = request.POST.get("warehouse")
+        # La sortie se fait toujours depuis l'entrepôt lié au vendeur.
+        warehouse_id = request.user.assigned_warehouse.id if request.user.assigned_warehouse else None
 
         if not warehouse_id:
             from django.contrib import messages
-            messages.error(request, "Erreur : Aucun entrepôt détecté pour cette vente.")
+            messages.error(
+                request,
+                "Erreur : aucun entrepôt n'est assigné à votre compte vendeur. Contactez un gérant.",
+            )
             return self.get(request, *args, **kwargs)
 
         from .services import complete_sale
@@ -64,13 +66,57 @@ class CheckoutView(LoginRequiredMixin, TemplateView):
                 user=request.user,
                 warehouse_id=warehouse_id,
                 sale_type=sale_type,
-                payment_method=payment_method
+                payment_method=payment_method,
+                customer_phone=customer_phone,
+                customer_id=customer_id,
+                customer_name=customer_name
             )
             return render(request, "sales/success.html", {"sale": sale})
         except Exception as e:
             from django.contrib import messages
             messages.error(request, f"Erreur lors de la validation : {str(e)}")
             return self.get(request, *args, **kwargs)
+
+
+@login_required
+def customer_search_ajax(request):
+    """Recherche HTMX de clients."""
+    query = request.GET.get("q", "").strip()
+    if len(query) < 2:
+        return HttpResponse("")
+
+    customers = Customer.objects.filter(
+        Q(name__icontains=query) | Q(phone__icontains=query)
+    )[:5]
+    return render(request, "sales/_customer_search_results.html", {"customers": customers})
+
+
+class CustomerListView(LoginRequiredMixin, ListView):
+    model = Customer
+    template_name = "sales/customer_list.html"
+    context_object_name = "customers"
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get("q")
+        if query:
+            queryset = queryset.filter(Q(name__icontains=query) | Q(phone__icontains=query))
+        return queryset
+
+
+class CustomerDetailView(LoginRequiredMixin, DetailView):
+    model = Customer
+    template_name = "sales/customer_detail.html"
+    context_object_name = "customer"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Historique d'audit
+        context["history_records"] = self.object.history.all()
+        # Ventes associées
+        context["sales"] = self.object.sales.all()[:10]
+        return context
 
 
 
@@ -104,6 +150,22 @@ class SaleDeleteView(GerantRequiredMixin, DeleteView):
     model = Sale
     template_name = "sales/sale_confirm_delete.html"
     success_url = reverse_lazy("sales:sale-list")
+
+
+class SaleCancelView(GerantRequiredMixin, View):
+    """Permet au gérant d'annuler une vente avec remise en stock."""
+    def post(self, request, pk):
+        sale = get_object_or_404(Sale, pk=pk)
+        from .services import cancel_sale
+        try:
+            cancel_sale(sale, request.user)
+            from django.contrib import messages
+            messages.success(request, f"La vente {sale.invoice_number} a été annulée. Les articles ont été remis en stock.")
+        except Exception as e:
+            from django.contrib import messages
+            messages.error(request, f"Erreur lors de l'annulation : {str(e)}")
+            
+        return redirect("sales:sale-detail", pk=pk)
 
 
 
@@ -220,7 +282,90 @@ class SaleInvoicePDFView(LoginRequiredMixin, WeasyTemplateResponseMixin, DetailV
     model = Sale
     template_name = "sales/invoice_pdf.html"
     context_object_name = "sale"
+    pdf_attachment = False # Affiche dans le navigateur au lieu de télécharger
     
-    # Options WeasyPrint pour le nom du fichier
     def get_pdf_filename(self):
         return f"Facture-{self.object.invoice_number}.pdf"
+
+
+class PaymentReceiptPDFView(LoginRequiredMixin, WeasyTemplateResponseMixin, DetailView):
+    model = Payment
+    template_name = "sales/payment_receipt_pdf.html"
+    context_object_name = "payment"
+    pdf_attachment = False
+    
+    def get_pdf_filename(self):
+        return f"Recu-{self.object.reference}.pdf"
+from .forms import CustomerForm
+
+class CustomerCreateView(LoginRequiredMixin, CreateView):
+    model = Customer
+    form_class = CustomerForm
+    success_url = reverse_lazy("sales:customer-list")
+
+    def form_valid(self, form):
+        from django.contrib import messages
+        messages.success(self.request, f"Le client {form.cleaned_data['name']} a été créé avec succès.")
+        return super().form_valid(form)
+
+@login_required
+@require_POST
+def process_payment_ajax(request, customer_id):
+    """Enregistre un versement client via AJAX/HTMX."""
+    customer = get_object_or_404(Customer, id=customer_id)
+    amount = request.POST.get("amount")
+    method = request.POST.get("payment_method", "CASH")
+    notes = request.POST.get("notes", "")
+
+    if not amount or int(amount) <= 0:
+        return HttpResponse("Montant invalide.", status=400)
+
+    from .services import process_payment
+    try:
+        payment = process_payment(
+            customer=customer,
+            amount=amount,
+            method=method,
+            received_by=request.user,
+            notes=notes
+        )
+        from django.contrib import messages
+        messages.success(request, f"Versement de {amount} F CFA enregistré avec succès pour {customer.name}.")
+        
+        # Redirection complète via HTMX (ferme la modal et affiche le message de succès)
+        return HttpResponse(headers={"HX-Redirect": request.META.get('HTTP_REFERER', reverse("sales:customer-list"))})
+    except ValueError as e:
+        # On renvoie un petit fragment HTML d'erreur pour la zone d'erreur de la modal
+        error_html = f'<div class="alert alert-danger border-0 small mb-4"><i class="fas fa-exclamation-circle me-2"></i> {str(e)}</div>'
+        return HttpResponse(error_html)
+    except Exception as e:
+        error_html = f'<div class="alert alert-danger border-0 small mb-4"><i class="fas fa-exclamation-triangle me-2"></i> Une erreur est survenue : {str(e)}</div>'
+        return HttpResponse(error_html)
+
+class PaymentListView(LoginRequiredMixin, ListView):
+    """Liste globale des versements effectués par les clients."""
+    model = Payment
+    template_name = "sales/payment_list.html"
+    context_object_name = "payments"
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Payment.objects.select_related('customer', 'received_by').all()
+        query = self.request.GET.get("q")
+        if query:
+            queryset = queryset.filter(
+                Q(customer__name__icontains=query) | 
+                Q(reference__icontains=query)
+            )
+        return queryset
+
+class AuditLogListView(GerantRequiredMixin, ListView):
+    """Journal d'audit global (simple-history) pour le gérant."""
+    template_name = "sales/audit_log.html"
+    context_object_name = "history_records"
+    paginate_by = 50
+
+    def get_queryset(self):
+        # On récupère l'historique des clients pour commencer
+        # Dans un vrai système, on pourrait fusionner plusieurs historiques
+        return Customer.history.all().select_related('history_user')

@@ -1,0 +1,182 @@
+{% extends "dashboard_base.html" %}
+{% load erp_tags %}
+
+{% block dashboard_content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Colonne Gauche : Infos Client -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4 mb-4">
+                <div class="mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 100px; height: 100px;">
+                        <span class="fs-1 fw-bold text-primary">{{ customer.name|slice:":1" }}</span>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">{{ customer.name }}</h3>
+                <p class="text-muted small mb-4">Inscrit le {{ customer.created_at|date:"d F Y" }}</p>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded-4">
+                            <small class="text-muted d-block mb-1">Total Achats</small>
+                            <span class="fw-bold">{{ sales.count }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-3 rounded-4">
+                            <small class="text-muted d-block mb-1">Solde Actuel</small>
+                            <span class="fw-bold {% if customer.balance > 0 %}text-danger{% else %}text-success{% endif %}">{{ customer.balance|money }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a href="https://wa.me/{{ customer.phone }}" target="_blank" class="btn btn-success rounded-pill py-2 fw-bold">
+                        <i class="fab fa-whatsapp me-2"></i> CONTACTER
+                    </a>
+                    <button class="btn btn-primary rounded-pill py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#paymentModal{{ customer.id }}">
+                        <i class="fas fa-hand-holding-usd me-2"></i> ENREGISTRER VERSEMENT
+                    </button>
+                </div>
+            </div>
+
+            <!-- Coordonnées -->
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-bold mb-3 border-bottom pb-2">Coordonnées</h5>
+                <div class="mb-3">
+                    <label class="text-muted small d-block">Téléphone</label>
+                    <span class="fw-bold text-dark">{{ customer.phone|default:"Non renseigné" }}</span>
+                </div>
+                <div class="mb-0">
+                    <label class="text-muted small d-block">Adresse</label>
+                    <span class="text-dark">{{ customer.address|default:"Non renseignée" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne Droite : Historique -->
+        <div class="col-12 col-lg-8">
+            <!-- Historique des Transactions -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0">Historique des Transactions</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4">Date</th>
+                                    <th>Référence</th>
+                                    <th>Désignation</th>
+                                    <th class="text-end pe-4">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in sales %}
+                                <tr>
+                                    <td class="ps-4">{{ sale.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'sales:sale-detail' sale.pk %}" class="fw-bold text-dark text-decoration-none">
+                                            {{ sale.invoice_number }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if sale.type == 'SALE' %}bg-success-soft text-success{% else %}bg-warning-soft text-warning{% endif %} rounded-pill px-2">
+                                            {{ sale.get_type_display }}
+                                        </span>
+                                        {% if sale.payment_method == 'CREDIT' %}
+                                        <span class="badge bg-danger-soft text-danger rounded-pill px-2">À CRÉDIT</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 fw-bold">{{ sale.total_amount|money }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">Aucune transaction enregistrée.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historique des Versements -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0">Historique des Versements</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover">
+                            <thead class="bg-light text-muted small text-uppercase">
+                                <tr>
+                                    <th class="ps-4">Date</th>
+                                    <th>Référence</th>
+                                    <th>Mode</th>
+                                    <th class="text-end pe-4">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in customer.payments.all %}
+                                <tr>
+                                    <td class="ps-4">{{ payment.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td class="fw-bold text-dark">{{ payment.reference }}</td>
+                                    <td>{{ payment.get_payment_method_display }}</td>
+                                    <td class="text-end pe-4 fw-bold text-success">{{ payment.amount|money }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">Aucun versement enregistré.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historique d'Audit (Gérant seulement) -->
+            {% if request.user.role == "GERANT" or request.user.is_superuser %}
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0">Audit - Modifications du Solde</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-sm">
+                            <thead class="bg-light text-muted x-small text-uppercase">
+                                <tr>
+                                    <th class="ps-4">Date</th>
+                                    <th>Utilisateur</th>
+                                    <th class="text-end pe-4">Nouveau Solde</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in history_records %}
+                                <tr>
+                                    <td class="ps-4 small">{{ record.history_date|date:"d/m/Y H:i" }}</td>
+                                    <td class="small">{{ record.history_user.username|default:"Système" }}</td>
+                                    <td class="text-end pe-4 small fw-bold">{{ record.balance|money }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal Versement -->
+{% include "sales/_payment_modal.html" %}
+
+<style>
+    .bg-success-soft { background-color: #e8f5e9; }
+    .bg-warning-soft { background-color: #fffde7; }
+    .bg-danger-soft { background-color: #ffebee; }
+</style>
+{% endblock %}

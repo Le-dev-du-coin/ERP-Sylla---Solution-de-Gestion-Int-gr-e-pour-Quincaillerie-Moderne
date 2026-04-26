@@ -2,67 +2,73 @@
 {% load erp_tags %}
 
 {% block dashboard_content %}
-<div class="container-fluid">
+<div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">Historique des Transactions</h2>
-        <div class="btn-group rounded-3 overflow-hidden shadow-sm">
-            <a href="{% url 'sales:sale-list' %}" class="btn btn-{% if not request.GET.type %}primary{% else %}light{% endif %} px-4">Tout</a>
-            <a href="{% url 'sales:sale-list' %}?type=SALE" class="btn btn-{% if request.GET.type == 'SALE' %}primary{% else %}light{% endif %} px-4">Ventes</a>
-            <a href="{% url 'sales:sale-list' %}?type=QUOTE" class="btn btn-{% if request.GET.type == 'QUOTE' %}primary{% else %}light{% endif %} px-4">Devis</a>
+        <div>
+            <h2 class="fw-bold mb-0">Historique des Ventes</h2>
+            <p class="text-muted small">Consultez et gérez vos transactions passées</p>
+        </div>
+        <a href="{% url 'sales:pos' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="fas fa-cart-plus me-2"></i> NOUVELLE VENTE
+        </a>
+    </div>
+
+    <!-- Filtres rapides -->
+    <div class="mb-4">
+        <div class="btn-group shadow-sm rounded-3 overflow-hidden">
+            <a href="{% url 'sales:sale-list' %}" class="btn btn-white fw-bold {% if not request.GET.type %}active{% endif %}">Toutes</a>
+            <a href="?type=SALE" class="btn btn-white fw-bold {% if request.GET.type == 'SALE' %}active{% endif %}">Factures</a>
+            <a href="?type=QUOTE" class="btn btn-white fw-bold {% if request.GET.type == 'QUOTE' %}active{% endif %}">Devis</a>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="bg-light text-muted small text-uppercase fw-bold">
                     <tr>
-                        <th class="ps-4">N° Référence</th>
-                        <th>Date</th>
+                        <th class="ps-4">Référence</th>
+                        <th>Client</th>
                         <th>Vendeur</th>
-                        <th class="text-center">Type</th>
-                        <th class="text-end">Montant Total</th>
-                        <th class="text-center">Paiement</th>
+                        <th>Type</th>
+                        <th class="text-end">Montant</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sale in sales %}
                     <tr>
-                        <td class="ps-4 fw-bold text-dark">{{ sale.invoice_number }}</td>
-                        <td class="text-muted small">{{ sale.created_at|date:"d/m/Y H:i" }}</td>
-                        <td>{{ sale.seller.username }}</td>
-                        <td class="text-center">
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ sale.invoice_number }}</div>
+                            <small class="text-muted">{{ sale.created_at|date:"d/m/Y H:i" }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ sale.customer.name|default:"Client de passage" }}</div>
+                            <div class="text-muted small">{{ sale.customer_phone|default:"-" }}</div>
+                        </td>
+                        <td><span class="small">{{ sale.seller.username }}</span></td>
+                        <td>
                             {% if sale.type == 'SALE' %}
-                            <span class="badge bg-success-subtle text-success rounded-pill px-3">Vente</span>
+                                <span class="badge bg-success-soft text-success rounded-pill px-2">Facture</span>
                             {% else %}
-                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Devis</span>
+                                <span class="badge bg-warning-soft text-warning rounded-pill px-2">Devis</span>
                             {% endif %}
                         </td>
-                        <td class="text-end fw-bold text-primary">{{ sale.total_amount|money }}</td>
-                        <td class="text-center">
-                            {% if sale.type == 'SALE' %}
-                            <small class="badge bg-light text-dark border">{{ sale.get_payment_method_display }}</small>
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
+                        <td class="text-end fw-bold">
+                            {{ sale.total_amount|money }}
                         </td>
                         <td class="text-end pe-4">
-                            <div class="d-flex justify-content-end gap-2">
-                                <a href="{% url 'sales:sale-detail' sale.pk %}" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Voir le détail">
-                                    <i class="fas fa-eye text-primary"></i>
-                                </a>
-                                {% if request.user.role == "GERANT" or request.user.is_superuser %}
-                                <a href="{% url 'sales:sale-delete' sale.pk %}" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Supprimer">
-                                    <i class="fas fa-trash text-danger"></i>
-                                </a>
-                                {% endif %}
-                            </div>
+                            <a href="{% url 'sales:sale-detail' sale.pk %}" class="btn btn-light btn-sm rounded-circle me-1" title="Voir les détails">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'sales:sale-pdf' sale.pk %}" target="_blank" class="btn btn-light btn-sm rounded-circle shadow-none" title="Imprimer">
+                                <i class="fas fa-print"></i>
+                            </a>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             Aucune transaction trouvée.
                         </td>
                     </tr>
@@ -70,21 +76,12 @@
                 </tbody>
             </table>
         </div>
+        {% include "partials/pagination.html" %}
     </div>
-
-    <!-- Pagination (Pager) -->
-    {% if is_paginated %}
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-            <li class="page-item"><a class="page-link border-0 shadow-sm rounded-3 me-2" href="?page={{ page_obj.previous_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">Précédent</a></li>
-            {% endif %}
-            <li class="page-item active"><span class="page-link border-0 shadow-sm rounded-3 me-2">{{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span></li>
-            {% if page_obj.has_next %}
-            <li class="page-item"><a class="page-link border-0 shadow-sm rounded-3" href="?page={{ page_obj.next_page_number }}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}">Suivant</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
 </div>
+
+<style>
+    .bg-success-soft { background-color: #e8f5e9; }
+    .bg-warning-soft { background-color: #fffde7; }
+</style>
 {% endblock %}

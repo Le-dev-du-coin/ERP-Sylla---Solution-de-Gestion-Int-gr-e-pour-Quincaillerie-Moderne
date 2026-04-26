@@ -1,5 +1,5 @@
 {% load erp_tags %}
-<div class="list-group list-group-flush">
+<div id="search-results-list" class="list-group list-group-flush">
     {% for product in products %}
     <div class="list-group-item product-result-card border-0 shadow-sm rounded-4 mb-3 p-3 bg-white">
         <div class="row align-items-center">
@@ -8,8 +8,8 @@
                 <h6 class="fw-bold mb-1 text-dark">{{ product.name }}</h6>
                 <div class="d-flex gap-3 align-items-center">
                     <span class="badge bg-light text-muted border small">{{ product.sku }}</span>
-                    <span class="small {% if product.local_stock > product.low_stock_threshold %}text-success{% else %}text-danger{% endif %} fw-bold">
-                        <i class="fas fa-warehouse me-1"></i> Stock {{ warehouse.name }} : {{ product.local_formatted_stock }}
+                    <span class="small {% if product.local_stock > 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                        <i class="fas fa-layer-group me-1"></i> Stock : {{ product.local_formatted_stock }}
                     </span>
                 </div>
             </div>
@@ -28,14 +28,15 @@
 
             <!-- Actions -->
             <div class="col-auto">
-                <div class="btn-group rounded-3 overflow-hidden shadow-sm">
+                <div class="btn-group rounded-3 overflow-hidden shadow-sm" hx-boost="false">
                     <button class="btn btn-success btn-sm px-3 py-2" 
                             title="Ajouter une pièce"
                             {% if product.local_stock <= 0 %}disabled{% endif %}
                             hx-post="{% url 'sales:ajax-cart-add' product.pk %}"
                             hx-vals='{"unit": "PIECE"}'
                             hx-target="#cart-container"
-                            hx-swap="outerHTML">
+                            hx-swap="outerHTML"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                         <i class="fas fa-plus me-1"></i> Pc
                     </button>
                     <button class="btn btn-outline-success btn-sm px-3 py-2" 
@@ -44,12 +45,13 @@
                             hx-post="{% url 'sales:ajax-cart-add' product.pk %}"
                             hx-vals='{"unit": "CARTON"}'
                             hx-target="#cart-container"
-                            hx-swap="outerHTML">
+                            hx-swap="outerHTML"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                         <i class="fas fa-box me-1"></i> Ct
                     </button>
                 </div>
                 {% if product.local_stock <= 0 %}
-                <div class="text-danger x-small fw-bold text-center mt-1">Épuisé</div>
+                <div class="text-danger x-small fw-bold text-center mt-1">Stock épuisé</div>
                 {% endif %}
             </div>
         </div>

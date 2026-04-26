@@ -1,0 +1,12 @@
+{% for customer in customers %}
+<button
+    type="button"
+    class="list-group-item list-group-item-action"
+    onclick="selectCustomer('{{ customer.id }}', '{{ customer.name|escapejs }}', '{{ customer.phone|default_if_none:''|escapejs }}')"
+>
+    <div class="fw-bold">{{ customer.name }}</div>
+    <small class="text-muted">{{ customer.phone|default:"Pas de tel" }}</small>
+</button>
+{% empty %}
+<div class="list-group-item text-muted small">Aucun client trouvé.</div>
+{% endfor %}

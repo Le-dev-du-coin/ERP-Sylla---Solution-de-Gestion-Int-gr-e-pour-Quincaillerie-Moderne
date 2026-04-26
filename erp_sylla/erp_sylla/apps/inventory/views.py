@@ -49,11 +49,14 @@ class StockStatusView(LoginRequiredMixin, ListView):
     context_object_name = "products"
     paginate_by = 50
 
-class LowStockListView(GerantRequiredMixin, ListView):
+from erp_sylla.apps.core.permissions import GerantRequiredMixin, VendeurRequiredMixin
+
+class LowStockListView(VendeurRequiredMixin, ListView):
     """Affiche les articles en alerte de stock."""
     model = Product
     template_name = "inventory/low_stock_list.html"
     context_object_name = "products"
+    paginate_by = 30
 
     def get_queryset(self):
         # Optimisation : une seule requête SQL avec annotation et filtre
@@ -187,6 +190,7 @@ class WarehouseListView(LoginRequiredMixin, ListView):
     model = Warehouse
     template_name = "inventory/warehouse_list.html"
     context_object_name = "warehouses"
+    paginate_by = 10
 
     def get_queryset(self):
         return Warehouse.objects.filter(is_active=True).annotate(

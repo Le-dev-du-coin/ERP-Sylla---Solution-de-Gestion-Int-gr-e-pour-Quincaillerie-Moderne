@@ -1,0 +1,76 @@
+{% extends "dashboard_base.html" %}
+{% load erp_tags %}
+
+{% block dashboard_content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">Journal d'Audit (Clients)</h2>
+            <p class="text-muted small">Historique complet des modifications de fiches clients et de soldes</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="bg-light text-muted small text-uppercase fw-bold">
+                    <tr>
+                        <th class="ps-4">Date & Heure</th>
+                        <th>Utilisateur</th>
+                        <th>Client</th>
+                        <th>Action</th>
+                        <th class="text-end pe-4">Nouveau Solde</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in history_records %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ record.history_date|date:"d/m/Y H:i:s" }}</div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                                    <i class="fas fa-user-edit small text-muted"></i>
+                                </div>
+                                <span class="small">{{ record.history_user.username|default:"Système" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{% url 'sales:customer-detail' record.id %}" class="text-decoration-none fw-bold">
+                                {{ record.name }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if record.history_type == "+" %}
+                                <span class="badge bg-success-soft text-success rounded-pill px-2">Création</span>
+                            {% elif record.history_type == "~" %}
+                                <span class="badge bg-primary-soft text-primary rounded-pill px-2">Modification</span>
+                            {% else %}
+                                <span class="badge bg-danger-soft text-danger rounded-pill px-2">Suppression</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <span class="fw-bold">{{ record.balance|money }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            Aucune modification enregistrée.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+
+<style>
+    .bg-success-soft { background-color: #e8f5e9; }
+    .bg-primary-soft { background-color: #e3f2fd; }
+    .bg-danger-soft { background-color: #ffebee; }
+</style>
+{% endblock %}

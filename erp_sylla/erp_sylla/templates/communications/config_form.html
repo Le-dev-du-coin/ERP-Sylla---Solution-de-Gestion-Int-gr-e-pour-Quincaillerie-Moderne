@@ -1,0 +1,82 @@
+{% extends "dashboard_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block dashboard_content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                    <i class="fab fa-whatsapp fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-0">Configuration ERP & WhatsApp</h2>
+                    <p class="text-muted mb-0">Gérez vos accès API Wachap et les paramètres système</p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary">Version du Système</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form.erp_version|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <p class="small text-muted mb-2">Version actuelle affichée sur les documents et notifications.</p>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary">Identifiants API Wachap</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form.wachap_instance_id|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.wachap_token|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary">Notifications & Rapports Gérant</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.manager_phone_1|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.manager_phone_2|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form.report_time|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <p class="small text-muted mb-2">Heure à laquelle le rapport journalier est envoyé automatiquement.</p>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold mb-3 border-bottom pb-2 text-primary">Sécurité des liens PDF</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form.link_validity_hours|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <p class="small text-muted mb-2">Durée de validité des liens de téléchargement envoyés aux clients.</p>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow">
+                                <i class="fas fa-save me-2"></i> ENREGISTRER LA CONFIGURATION
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

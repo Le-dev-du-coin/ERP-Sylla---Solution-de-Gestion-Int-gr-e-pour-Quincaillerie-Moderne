@@ -2,9 +2,9 @@
 {% load static %}
 
 {% block dashboard_content %}
-<div class="container-fluid p-0">
-    <!-- Barre de recherche flottante (Haut) -->
-    <div class="sticky-top bg-white shadow-sm p-3 mb-4" style="z-index: 1020; top: -20px; margin-top: -20px;">
+<div class="container-fluid py-2">
+    <!-- Barre de recherche -->
+    <div class="bg-white shadow-sm p-3 mb-4 rounded-4 border-0">
         <div class="input-group input-group-lg border rounded-pill overflow-hidden bg-light">
             <span class="input-group-text border-0 bg-transparent ps-4">
                 <i class="fas fa-search text-muted"></i>
@@ -17,6 +17,8 @@
                    hx-get="{% url 'sales:ajax-product-search' %}"
                    hx-trigger="keyup changed delay:300ms"
                    hx-target="#search-results"
+                   hx-select="#search-results-list"
+                   hx-swap="innerHTML"
                    hx-indicator=".search-spinner">
             <div class="search-spinner htmx-indicator p-3">
                 <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
@@ -45,12 +47,7 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    <div id="cart-container">
-                        {% include "sales/_cart_detail.html" %}
-                    </div>
-                </div>
-                <div id="cart-summary">
-                    <!-- Le footer est géré par le fragment _cart_detail.html via OOB -->
+                    {% include "sales/_cart_detail.html" %}
                 </div>
             </div>
         </div>
@@ -59,24 +56,30 @@
 
 <!-- Styles spécifiques au POS -->
 <style>
-    #content { padding-top: 0 !important; }
     .search-spinner { display: none; }
     .htmx-request .search-spinner { display: block; }
     .product-result-card { transition: all 0.2s; }
     .product-result-card:hover { transform: scale(1.005); background-color: #f8fafc; }
-    
-    @media (max-width: 991px) {
-        .sticky-top { top: 0 !important; margin-top: 0 !important; }
-    }
 </style>
 
 <!-- Script minimaliste et sécurisé pour le POS -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // CSRF Token Setup for HTMX
-        document.body.addEventListener('htmx:configRequest', (event) => {
-            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
-        });
-    });
+    (function() {
+        const initPOS = function() {
+            // Configuration CSRF pour HTMX
+            document.body.addEventListener('htmx:configRequest', (event) => {
+                event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            });
+            
+            const searchInput = document.getElementById('pos-search-input');
+            if (searchInput) {
+                searchInput.focus();
+                htmx.process(searchInput);
+            }
+        };
+
+        initPOS();
+        document.body.addEventListener('htmx:afterSwap', initPOS);
+    })();
 </script>
 {% endblock %}
