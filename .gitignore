@@ -14,3 +14,4 @@ __pycache__/
 # Fichiers de configuration temporaires
 cookiecutter-config.yaml
 template-django/
+Resources/
