@@ -25,9 +25,23 @@ Thumbs.db
 node_modules/
 package-lock.json
 
-# Python
+# Python & Environments
 .venv/
 env/
 venv/
 ENV/
 .pytest_cache/
+
+# Local configurations & tools
+.editorconfig
+.gitattributes
+.pre-commit-config.yaml
+.readthedocs.yml
+gulpfile.mjs
+merge_production_dotenvs_in_dotenv.py
+docker-compose.dev.yml
+docker-compose.docs.yml
+
+# Project Specific
+erp_sylla/erp_sylla/media/
+Resources/
