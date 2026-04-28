@@ -1,7 +1,0 @@
-# PostgreSQL
-# ------------------------------------------------------------------------------
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-POSTGRES_DB=erp_sylla
-POSTGRES_USER=AUsZeoUywKqWScvMqYErLRaiYYavcGKw
-POSTGRES_PASSWORD=lVGUWi2TiNMIUoUhUfMZjRPOFTseOreNAvRFD27BVd4sbKPAmEIvAjMyBkXFUI5W

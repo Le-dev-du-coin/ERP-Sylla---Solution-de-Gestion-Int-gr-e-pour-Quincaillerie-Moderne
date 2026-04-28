@@ -11,7 +11,7 @@ staticfiles/
 .env
 .envs/
 
-# BMAD & AI
+# BMAD & AI (Crucial)
 _bmad/
 _bmad-output/
 .gemini/
