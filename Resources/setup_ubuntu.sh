@@ -15,13 +15,13 @@ echo -e "${YELLOW}🚀 Début de l'installation du serveur ERP Sylla...${NC}"
 
 # 1. Variables Globales
 GIT_REPO="https://github.com/Le-dev-du-coin/ERP-Sylla---Solution-de-Gestion-Int-gr-e-pour-Quincaillerie-Moderne.git" 
-DOMAIN="votre-domaine.com"
+DOMAIN="erpsyllamadjou.com"
 SERVER_IP=$(curl -s ifconfig.me)
 DB_NAME="erp_sylla"
 DB_USER="sylla_admin"
 DB_PASS="Sylla.ERP@2026" 
-USER_ACCOUNT="sylladmin"
-SYSTEM_PASS="Sylla.ERP@2026" 
+USER_ACCOUNT="syll-admin"
+SYSTEM_PASS="SyllaERP@2026@" 
 USER_HOME="/home/$USER_ACCOUNT"
 
 # Tout est à la racine maintenant
