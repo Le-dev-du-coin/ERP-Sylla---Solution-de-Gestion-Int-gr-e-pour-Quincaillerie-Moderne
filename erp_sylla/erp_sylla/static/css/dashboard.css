@@ -20,11 +20,19 @@ body {
 #sidebar {
     min-width: var(--sidebar-width);
     max-width: var(--sidebar-width);
-    background: var(--primary-color);
-    color: #fff;
+    background: #1e293b; /* Slate-800 - Un peu plus clair que le noir */
+    color: #f8fafc;
     transition: all 0.3s;
     min-height: 100vh;
     z-index: 1000;
+}
+
+#sidebar .text-muted {
+    color: #94a3b8 !important; /* Slate-400 pour les titres de section */
+}
+
+#sidebar .text-primary {
+    color: var(--accent-color) !important; /* Utiliser l'accent color pour le logo */
 }
 
 .btn-primary {
@@ -44,30 +52,31 @@ body {
 
 #sidebar .sidebar-header {
     padding: 20px;
-    background: #1a1d21;
+    background: #0f172a; /* Slate-900 pour l'en-tête */
 }
 
 #sidebar ul.components {
-    padding: 20px 0;
+    padding: 10px 0;
 }
 
 #sidebar ul li a {
-    padding: 12px 20px;
+    padding: 10px 20px;
     display: block;
-    color: #adb5bd;
+    color: #cbd5e1; /* Slate-300 pour les liens */
     text-decoration: none;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     transition: 0.2s;
 }
 
 #sidebar ul li a:hover {
     color: #fff;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 #sidebar ul li.active > a {
     color: #fff;
-    background: var(--primary-color);
+    background: #334155; /* Slate-700 pour l'élément actif */
+    border-left: 4px solid var(--accent-color);
 }
 
 #content {

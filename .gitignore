@@ -45,3 +45,10 @@ docker-compose.docs.yml
 # Project Specific
 erp_sylla/erp_sylla/media/
 Resources/
+
+# Static files generated
+project.css
+project.min.css
+vendors.js
+*.min.js
+*.min.js.map
