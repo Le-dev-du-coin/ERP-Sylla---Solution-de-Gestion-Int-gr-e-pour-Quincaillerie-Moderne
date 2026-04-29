@@ -251,9 +251,9 @@ EMAIL_TIMEOUT = 5
 # ADMIN
 # ------------------------------------------------------------------------------
 # Django Admin URL.
-ADMIN_URL = "admin/"
+ADMIN_URL = "erp-sylla-admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = ['"MaliandevBoy" <contact@erp-sylla.com>']
+ADMINS = ['"MaliandevBoy" <ledevducoin223@gmail.com>']
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 # https://cookiecutter-django.readthedocs.io/en/latest/settings.html#other-environment-settings
