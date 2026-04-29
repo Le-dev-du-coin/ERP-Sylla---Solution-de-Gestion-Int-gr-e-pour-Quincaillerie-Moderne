@@ -1,0 +1,49 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+.env
+.envs/
+
+# BMAD & AI
+_bmad/
+_bmad-output/
+.gemini/
+.ai/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+package-lock.json
+
+# Python & Environments
+.venv/
+env/
+venv/
+ENV/
+.pytest_cache/
+
+# Local configurations
+.editorconfig
+.gitattributes
+.pre-commit-config.yaml
+.readthedocs.yml
+gulpfile.mjs
+
+# Project Specific
+erp_sylla/erp_sylla/media/
+Resources/
+*.min.js
+*.min.js.map
+project.css
+project.min.css
+vendors.js
