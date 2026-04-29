@@ -339,6 +339,8 @@ ACCOUNT_FORMS = {"signup": "erp_sylla.users.forms.UserSignupForm"}
 SOCIALACCOUNT_ADAPTER = "erp_sylla.users.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_FORMS = {"signup": "erp_sylla.users.forms.UserSocialSignupForm"}
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_LOGOUT_REDIRECT_URL = "account_login"
 
 
 # Your stuff...
