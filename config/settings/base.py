@@ -9,6 +9,10 @@ import environ
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # erp_sylla/
 APPS_DIR = BASE_DIR / "erp_sylla"
+if not (APPS_DIR / "templates").exists():
+    # Si les templates ne sont pas là, on cherche un niveau plus bas (structure VPS imbriquée)
+    if (APPS_DIR / "erp_sylla" / "templates").exists():
+        APPS_DIR = APPS_DIR / "erp_sylla"
 env = environ.Env()
 
 READ_DOT_ENV_FILE = True
