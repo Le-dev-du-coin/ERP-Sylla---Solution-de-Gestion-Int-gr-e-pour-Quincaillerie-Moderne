@@ -19,15 +19,6 @@ import datetime
 import json
 from django.http import JsonResponse
 
-def debug_ip(request):
-    """Vue temporaire pour diagnostiquer les problèmes d'IP en production."""
-    headers = {k: v for k, v in request.META.items() if k.startswith(('HTTP_', 'REMOTE_'))}
-    return JsonResponse({
-        "remote_addr": request.META.get('REMOTE_ADDR'),
-        "allauth_ip": request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR')),
-        "headers": headers,
-    })
-
 class POSView(VendeurRequiredMixin, TemplateView):
     template_name = "core/pos.html"
 
