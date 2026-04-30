@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import (
+    debug_ip,
     DashboardFinancierView, 
     DashboardVendeurView,
     POSView, 
@@ -33,4 +34,5 @@ urlpatterns = [
     # Paramètres & Backups
     path("settings/", SettingsDashboardView.as_view(), name="settings-dashboard"),
     path("settings/backup/", create_manual_backup, name="create-manual-backup"),
+    path("debug-ip/", debug_ip, name="debug-ip"),
 ]

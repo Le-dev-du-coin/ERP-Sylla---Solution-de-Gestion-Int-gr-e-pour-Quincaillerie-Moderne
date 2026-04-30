@@ -207,5 +207,8 @@ LOGGING = {
 # https://docs.allauth.org/en/latest/account/configuration.html#account-proxy-address-headers
 ACCOUNT_PROXY_ADDRESS_HEADERS = {"HTTP_X_FORWARDED_FOR"}
 
+# Désactiver le rate limiting si l'IP ne peut pas être déterminée (évite le 403)
+ACCOUNT_RATE_LIMITS = {}
+
 # Your stuff...
 # ------------------------------------------------------------------------------
