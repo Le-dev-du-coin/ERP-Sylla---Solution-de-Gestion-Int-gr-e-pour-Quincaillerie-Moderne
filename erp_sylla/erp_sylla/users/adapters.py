@@ -22,7 +22,7 @@ class AccountAdapter(DefaultAccountAdapter):
         if "account/messages/logged_in.txt" in message_template:
             from django.contrib import messages
             user = request.user
-            display_name = user.name or user.username
+            display_name = user.first_name or user.name or user.username
             custom_message = f"Bienvenue {display_name} ! Vous êtes maintenant connecté à l'ERP Ets Sylla Madjou."
             return messages.add_message(request, messages.SUCCESS, custom_message, extra_tags=extra_tags)
         
