@@ -92,7 +92,14 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
     def get_redirect_url(self):
         user = self.request.user
-        if user.role == "GERANT" or user.is_superuser:
+        # Vérification robuste : rôle GERANT, superutilisateur ou appartenance au groupe Gérants
+        is_gerant = (
+            user.role == "GERANT" or 
+            user.is_superuser or 
+            user.groups.filter(name="Gérants").exists()
+        )
+        
+        if is_gerant:
             return reverse("core:finance")
         return reverse("core:vendeur-dashboard")
 

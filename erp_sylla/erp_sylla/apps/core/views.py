@@ -29,6 +29,7 @@ class DashboardVendeurView(VendeurRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.now().date()
+        context['today'] = today
         
         # Filtre les ventes du vendeur pour aujourd'hui
         my_sales = Sale.objects.filter(
@@ -90,6 +91,7 @@ class DashboardFinancierView(GerantRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['today'] = timezone.now().date()
         
         # Période par défaut : 30 derniers jours
         days = int(self.request.GET.get('days', 30))
