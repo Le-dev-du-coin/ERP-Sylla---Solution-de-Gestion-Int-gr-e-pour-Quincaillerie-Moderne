@@ -28,7 +28,7 @@ class AgentListView(GerantRequiredMixin, ListView):
 
 class AgentCreateView(GerantRequiredMixin, CreateView):
     model = User
-    fields = ["username", "name", "email", "password", "role", "assigned_warehouse"]
+    fields = ["username", "first_name", "last_name", "name", "email", "password", "role", "assigned_warehouse"]
     template_name = "users/agent_form.html"
     success_url = reverse_lazy("users:agent-list")
 
@@ -41,6 +41,15 @@ class AgentCreateView(GerantRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
+        form.fields["username"].label = "Identifiant"
+        form.fields["first_name"].label = "Prénom"
+        form.fields["last_name"].label = "Nom de famille"
+        form.fields["name"].label = "Nom d'affichage complet"
+        form.fields["email"].label = "Adresse Email"
+        form.fields["password"].label = "Mot de passe"
+        form.fields["role"].label = "Rôle"
+        form.fields["assigned_warehouse"].label = "Magasin affecté"
+        
         for field in form.fields.values():
             field.widget.attrs.update({"class": "form-control rounded-3"})
         return form
@@ -48,13 +57,22 @@ class AgentCreateView(GerantRequiredMixin, CreateView):
 
 class AgentUpdateView(GerantRequiredMixin, UpdateView):
     model = User
-    fields = ["username", "name", "email", "role", "assigned_warehouse", "is_active"]
+    fields = ["username", "first_name", "last_name", "name", "email", "role", "assigned_warehouse", "is_active"]
     template_name = "users/agent_form.html"
     success_url = reverse_lazy("users:agent-list")
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
+        form.fields["username"].label = "Identifiant"
         form.fields["username"].disabled = True
+        form.fields["first_name"].label = "Prénom"
+        form.fields["last_name"].label = "Nom de famille"
+        form.fields["name"].label = "Nom d'affichage complet"
+        form.fields["email"].label = "Adresse Email"
+        form.fields["role"].label = "Rôle"
+        form.fields["assigned_warehouse"].label = "Magasin affecté"
+        form.fields["is_active"].label = "Actif"
+        
         for field in form.fields.values():
             field.widget.attrs.update({"class": "form-control rounded-3"})
         return form
