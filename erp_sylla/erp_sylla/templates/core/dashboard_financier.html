@@ -23,33 +23,53 @@
     </div>
 
     <!-- KPIs -->
-    <div class="row g-4 mb-4">
+    <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-                <small class="text-muted text-uppercase fw-bold d-block mb-1">Chiffre d'Affaires</small>
-                <h3 class="fw-bold text-dark mb-0 text-truncate">{{ total_ca|money }}</h3>
-                <small class="text-muted small">Ventes validées</small>
+            <div class="card card-premium shadow-sm h-100" style="border-top: 4px solid #22c55e !important;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="rounded-3 bg-success bg-opacity-10 p-2 text-success">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem;">Chiffre d'Affaires</small>
+                <h4 class="fw-bold text-dark mb-0 text-truncate">{{ total_ca|money }}</h4>
+                <small class="text-muted x-small mt-2 d-block"><i class="fas fa-check-circle me-1 text-success"></i> Ventes validées</small>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-                <small class="text-muted text-uppercase fw-bold d-block mb-1">Valeur du Stock</small>
-                <h3 class="fw-bold text-primary mb-0 text-truncate">{{ total_stock_value|money }}</h3>
-                <small class="text-muted small">Valorisation au prix d'achat</small>
+            <div class="card card-premium shadow-sm h-100" style="border-top: 4px solid #3b82f6 !important;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="rounded-3 bg-primary bg-opacity-10 p-2 text-primary">
+                        <i class="fas fa-warehouse"></i>
+                    </div>
+                </div>
+                <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem;">Valeur du Stock</small>
+                <h4 class="fw-bold text-primary mb-0 text-truncate">{{ total_stock_value|money }}</h4>
+                <small class="text-muted x-small mt-2 d-block">Valorisation (Achat)</small>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
-                <small class="text-muted text-uppercase fw-bold d-block mb-1">Panier Moyen</small>
-                <h3 class="fw-bold text-dark mb-0 text-truncate">{{ avg_basket|floatformat:0|money }}</h3>
-                <small class="text-muted small">Basé sur {{ sales_count }} ventes</small>
+            <div class="card card-premium shadow-sm h-100" style="border-top: 4px solid #f59e0b !important;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="rounded-3 bg-warning bg-opacity-10 p-2 text-warning">
+                        <i class="fas fa-shopping-basket"></i>
+                    </div>
+                </div>
+                <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem;">Panier Moyen</small>
+                <h4 class="fw-bold text-dark mb-0 text-truncate">{{ avg_basket|floatformat:0|money }}</h4>
+                <small class="text-muted x-small mt-2 d-block">Sur {{ sales_count }} transactions</small>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-primary text-white h-100">
-                <small class="text-white text-opacity-75 text-uppercase fw-bold d-block mb-1">Marge Brute</small>
-                <h3 class="fw-bold mb-0 text-truncate">{{ total_margin|money }}</h3>
-                <small class="text-white text-opacity-75 small">Bénéfice estimé sur ventes</small>
+            <div class="card card-premium border-0 shadow-sm bg-primary text-white h-100" style="border-top: 4px solid #8b5cf6 !important;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="rounded-3 bg-white bg-opacity-25 p-2 text-white shadow-sm">
+                        <i class="fas fa-hand-holding-dollar fa-lg"></i>
+                    </div>
+                </div>
+                <small class="text-white text-opacity-75 text-uppercase fw-bold d-block mb-1" style="font-size: 0.65rem;">Marge Brute</small>
+                <h4 class="fw-bold mb-0 text-truncate">{{ total_margin|money }}</h4>
+                <small class="text-white text-opacity-75 x-small mt-2 d-block">Bénéfice estimé</small>
             </div>
         </div>
     </div>
@@ -225,13 +245,27 @@
             const payEl = document.getElementById('payChart');
             if (payEl && !payEl.chartInstance) {
                 const ctxPay = payEl.getContext('2d');
+                
+                // Mapping des couleurs demandées
+                const colorMap = {
+                    'Espèces': '#22c55e',       // Vert
+                    'Orange Money': '#f97316',  // Orange
+                    'Wave': '#3b82f6',         // Bleu
+                    'Moov Money': '#1e3a8a',   // Bleu foncé
+                    'Crédit': '#ef4444',       // Rouge
+                    'Chèque': '#64748b'        // Gris
+                };
+
+                const labels = {{ chart_pay_labels|safe }};
+                const bgColors = labels.map(label => colorMap[label] || '#cbd5e1');
+
                 payEl.chartInstance = new Chart(ctxPay, {
                     type: 'doughnut',
                     data: {
-                        labels: {{ chart_pay_labels|safe }},
+                        labels: labels,
                         datasets: [{
                             data: {{ chart_pay_values|safe }},
-                            backgroundColor: ['#22c55e', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#64748b'],
+                            backgroundColor: bgColors,
                             borderWidth: 0
                         }]
                     },

@@ -161,6 +161,36 @@ body {
     font-size: 0.8rem;
 }
 
+/* Nouvelles cartes Premium - Plus compactes */
+.card-premium {
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    background: #fff;
+    padding: 1.25rem !important; /* Réduction du padding */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-premium:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08) !important;
+}
+
+/* Effet Hover sur les tableaux - Spécificité renforcée */
+#content table.table-hover tbody tr:hover td, 
+#content table.table-hover tbody tr:hover {
+    background-color: #f0fdf4 !important; /* Vert Sylla très léger (Green-50) */
+    cursor: pointer;
+}
+
+.table thead th {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.8px;
+    color: #64748b;
+    border-top: none;
+    padding: 1rem 0.75rem;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
     #sidebar {
