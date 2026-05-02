@@ -106,40 +106,54 @@
             {% endif %}
         </ul>
 
-        <div class="sidebar-footer mt-auto p-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
-            <a href="{% url 'account_logout' %}" class="text-decoration-none text-danger small">
-                <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
-            </a>
-            <span class="text-muted small" style="font-size: 0.6rem;">{{ ERP_VERSION }}</span>
+        <div class="sidebar-footer mt-auto p-3 border-top border-secondary border-opacity-10">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                    <div class="user-avatar rounded-circle flex-shrink-0">
+                        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="text-white small fw-bold text-truncate" style="font-size: 0.75rem;">
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </div>
+                        <div class="text-muted" style="font-size: 0.6rem;">{{ request.user.get_role_display }}</div>
+                    </div>
+                </div>
+                <a href="{% url 'account_logout' %}" class="btn btn-link text-danger p-1 ms-2" title="Déconnexion">
+                    <i class="fas fa-power-off"></i>
+                </a>
+            </div>
+            <div class="text-center mt-2">
+                <span class="text-muted opacity-25" style="font-size: 0.5rem;">{{ ERP_VERSION }}</span>
+            </div>
         </div>
     </nav>
 
     <!-- Page Content -->
     <div id="content">
-        <nav class="navbar navbar-expand-lg navbar-light bg-transparent mb-4">
+        <nav class="navbar navbar-expand-lg">
             <div class="container-fluid p-0">
                 <button type="button" id="sidebarCollapse" class="btn btn-white shadow-sm border rounded-3 me-3">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div class="ms-auto d-flex align-items-center">
-                    <span class="me-3 d-none d-md-block small text-muted">{{ request.user.username }}</span>
-                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
-                        <i class="fas fa-user text-primary small"></i>
-                    </div>
+                <div class="ms-auto">
+                    <!-- Vide car déplacé dans la sidebar -->
                 </div>
             </div>
         </nav>
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %} shadow-sm border-0">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+        <div class="content-body">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %} shadow-sm border-0 rounded-3">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
 
-        {% block dashboard_content %}{% endblock dashboard_content %}
+            {% block dashboard_content %}{% endblock dashboard_content %}
+        </div>
     </div>
 </div>
 
@@ -150,19 +164,18 @@
         
         const setupSidebar = () => {
             const btn = document.getElementById('sidebarCollapse');
-            if (btn) {
-                // Remplacer l'ancien écouteur par un nouveau
+            if (sidebar && btn) {
                 btn.onclick = function(e) {
                     e.preventDefault();
                     sidebar.classList.toggle('active');
-                    overlay.classList.toggle('active');
+                    if (overlay) overlay.classList.toggle('active');
                 };
             }
         };
 
         if (overlay) {
             overlay.onclick = function() {
-                sidebar.classList.remove('active');
+                if (sidebar) sidebar.classList.remove('active');
                 overlay.classList.remove('active');
             };
         }
@@ -172,9 +185,9 @@
         // Nettoyage et réinitialisation après un chargement HTMX
         document.body.addEventListener('htmx:afterSwap', function(evt) {
             // Fermer la sidebar sur mobile après navigation
-            if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+            if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('active')) {
                 sidebar.classList.remove('active');
-                overlay.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
             }
 
             // Fermeture des modales si présentes
