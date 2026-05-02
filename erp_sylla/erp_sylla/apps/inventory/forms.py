@@ -1,5 +1,6 @@
 from django.db import models
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from .models import Product, StockTransaction, Warehouse
 
 class ProductForm(forms.ModelForm):

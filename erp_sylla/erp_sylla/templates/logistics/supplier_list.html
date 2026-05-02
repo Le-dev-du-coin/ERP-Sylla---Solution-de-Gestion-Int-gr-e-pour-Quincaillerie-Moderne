@@ -1,0 +1,68 @@
+{% extends "dashboard_base.html" %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'logistics:container-list' %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="fw-bold mb-1">Fournisseurs Logistique</h2>
+                <p class="text-muted small mb-0">Carnet d'adresses des fournisseurs d'importation.</p>
+            </div>
+        </div>
+        {% if request.user.role == "GERANT" or request.user.is_superuser %}
+        <a href="{% url 'logistics:supplier-add' %}" class="btn btn-primary rounded-3 px-4 shadow-sm">
+            <i class="fas fa-plus me-2"></i> Nouveau Fournisseur
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Nom du Fournisseur</th>
+                        <th>Pays</th>
+                        <th>Contact</th>
+                        <th>Téléphone / Email</th>
+                        <th class="text-center">Conteneurs</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supplier in suppliers %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">{{ supplier.name }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ supplier.country|default:"-" }}</span></td>
+                        <td>{{ supplier.contact_person|default:"-" }}</td>
+                        <td>
+                            <div class="small fw-medium">{{ supplier.phone|default:"-" }}</div>
+                            <div class="x-small text-muted">{{ supplier.email|default:"-" }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">{{ supplier.containers.count }}</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            {% if request.user.role == "GERANT" or request.user.is_superuser %}
+                            <a href="{% url 'logistics:supplier-edit' supplier.pk %}" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Modifier">
+                                <i class="fas fa-edit text-muted"></i>
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            Aucun fournisseur enregistré.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

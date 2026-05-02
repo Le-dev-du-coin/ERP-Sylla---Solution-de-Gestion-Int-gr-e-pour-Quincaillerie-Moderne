@@ -1,0 +1,101 @@
+{% extends "dashboard_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'logistics:container-list' %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h2 class="fw-bold mb-0">{% if object %}Modifier{% else %}Nouveau{% endif %} Conteneur</h2>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.container_number|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.order_reference|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.supplier|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.status|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-primary mt-4 mb-3 border-bottom pb-2">Informations Logistiques</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.origin_port|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.destination_port|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.main_product|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.container_type|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.quantity_packages|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-primary mt-4 mb-3 border-bottom pb-2">Dates Clés</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.order_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.loading_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.etd|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.eta|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.actual_arrival_date|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-primary mt-4 mb-3 border-bottom pb-2">Finances & Notes</h6>
+                        <div class="mb-3">
+                            {{ form.merchandise_value|as_crispy_field }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.observation|as_crispy_field }}
+                        </div>
+
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-bold py-2 shadow-sm">
+                                <i class="fas fa-save me-2"></i> Enregistrer le conteneur
+                            </button>
+                            <a href="{% url 'logistics:container-list' %}" class="btn btn-light rounded-3">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

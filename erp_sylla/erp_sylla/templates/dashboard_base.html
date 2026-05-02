@@ -57,6 +57,11 @@
             <li class="{% if request.resolver_match.view_name == 'inventory:stock-alerts' %}active{% endif %}">
                 <a href="{% url 'inventory:stock-alerts' %}"><i class="fas fa-exclamation-circle me-2 text-danger"></i> Alertes Stock</a>
             </li>
+
+            <li class="mt-4 px-3 text-uppercase x-small text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Logistique</li>
+            <li class="{% if 'logistics' in request.resolver_match.namespace %}active{% endif %}">
+                <a href="{% url 'logistics:container-list' %}"><i class="fas fa-ship me-2 text-info"></i> Suivi Conteneurs</a>
+            </li>
             
             <li class="mt-4 px-3 text-uppercase x-small text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Communications</li>
             <li class="{% if request.resolver_match.view_name == 'communications:notification-dashboard' %}active{% endif %}">
