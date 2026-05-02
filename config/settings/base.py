@@ -98,6 +98,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "django_celery_beat",
     "simple_history",
+    "import_export",
 ]
 
 LOCAL_APPS = [

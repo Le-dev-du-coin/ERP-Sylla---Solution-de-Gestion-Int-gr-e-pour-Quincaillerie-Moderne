@@ -44,8 +44,9 @@ class BackupService:
         env = os.environ.copy()
         env['PGPASSWORD'] = db_password
         
-        # Utilisation du chemin absolu identifié
-        pg_dump_path = '/usr/local/Cellar/libpq/18.3/bin/pg_dump'
+        # Identification dynamique du chemin pg_dump (Mac local vs Serveur Linux)
+        import shutil
+        pg_dump_path = shutil.which('pg_dump') or '/usr/bin/pg_dump'
         
         cmd = [
             pg_dump_path,

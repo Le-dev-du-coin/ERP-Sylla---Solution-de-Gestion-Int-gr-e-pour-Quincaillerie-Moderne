@@ -3,13 +3,16 @@ from .views import (
     ProductListView, StockStatusView, ProductCreateView, ProductUpdateView, ProductDeleteView,
     StockTransactionCreateView, WarehouseListView, WarehouseCreateView, WarehouseUpdateView, 
     WarehouseDetailView, WarehouseDeleteView, get_product_stock_info, LowStockListView,
-    ProductThresholdUpdateView
+    ProductThresholdUpdateView, ProductImportView, ProductExportView, BulkDeleteProductsView
 )
 
 app_name = "inventory"
 urlpatterns = [
     path("products/", ProductListView.as_view(), name="product-list"),
     path("products/add/", ProductCreateView.as_view(), name="product-add"),
+    path("products/import/", ProductImportView.as_view(), name="product-import"),
+    path("products/export/", ProductExportView.as_view(), name="product-export"),
+    path("products/bulk-delete/", BulkDeleteProductsView.as_view(), name="product-bulk-delete"),
     path("products/<int:pk>/edit/", ProductUpdateView.as_view(), name="product-edit"),
     path("products/<int:pk>/threshold/", ProductThresholdUpdateView.as_view(), name="product-threshold-edit"),
     path("products/<int:pk>/delete/", ProductDeleteView.as_view(), name="product-delete"),

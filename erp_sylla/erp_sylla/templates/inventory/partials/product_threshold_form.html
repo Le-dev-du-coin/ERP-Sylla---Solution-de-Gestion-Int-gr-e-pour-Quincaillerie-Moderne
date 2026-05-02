@@ -1,4 +1,9 @@
 {% load crispy_forms_tags %}
+<style>
+    .htmx-indicator-spinner { display: none; }
+    .htmx-request .htmx-indicator-spinner { display: inline-block; }
+    .htmx-request.btn { pointer-events: none; opacity: 0.8; }
+</style>
 <div id="threshold-modal" class="modal fade show" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -8,7 +13,8 @@
             </div>
             <form hx-post="{% url 'inventory:product-threshold-edit' product.pk %}" 
                   hx-target="#threshold-modal" 
-                  hx-swap="outerHTML">
+                  hx-swap="outerHTML"
+                  hx-indicator=".htmx-indicator-spinner">
                 {% csrf_token %}
                 <div class="modal-body p-4">
                     <p class="text-muted small mb-4">Modifiez les seuils pour définir quand cet article doit apparaître dans les alertes de stock critique.</p>
@@ -31,6 +37,7 @@
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" onclick="document.getElementById('threshold-modal').remove()">Annuler</button>
                     <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow">
+                        <span class="htmx-indicator-spinner spinner-border spinner-border-sm me-2" role="status" style="display: none;"></span>
                         Enregistrer les Seuils
                     </button>
                 </div>

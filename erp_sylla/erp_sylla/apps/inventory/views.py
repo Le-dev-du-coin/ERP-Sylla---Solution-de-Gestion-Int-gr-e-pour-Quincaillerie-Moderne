@@ -10,6 +10,92 @@ from erp_sylla.apps.core.permissions import GerantRequiredMixin
 from .forms import ProductThresholdForm
 
 
+from django.shortcuts import redirect, render
+from django.contrib import messages
+from tablib import Dataset
+from .resources import ProductResource
+
+from django.db.models import ProtectedError
+
+class ProductExportView(LoginRequiredMixin, GerantRequiredMixin, ListView):
+    def get(self, request, *args, **kwargs):
+        resource = ProductResource()
+        dataset = resource.export()
+        response = HttpResponse(dataset.xlsx, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="export_produits.xlsx"'
+        return response
+
+class ProductImportView(LoginRequiredMixin, GerantRequiredMixin, CreateView):
+    template_name = "inventory/product_import.html"
+    
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
+        
+    def post(self, request, *args, **kwargs):
+        if 'file' not in request.FILES:
+            messages.error(request, "Veuillez sélectionner un fichier.")
+            return render(request, self.template_name)
+            
+        file = request.FILES['file']
+        if not file.name.endswith(('.xlsx', '.xls')):
+            messages.error(request, "Le fichier doit être au format Excel (.xlsx ou .xls).")
+            return render(request, self.template_name)
+            
+        try:
+            import pandas as pd
+            try:
+                df = pd.read_excel(file, sheet_name='Produits', skiprows=4)
+            except Exception:
+                df = pd.read_excel(file)
+            
+            df = df.dropna(subset=['Code produit', 'Désignation'], how='all')
+            if df.empty:
+                messages.error(request, "Le fichier semble vide ou mal formaté.")
+                return render(request, self.template_name)
+
+            dataset = Dataset().load(df)
+            resource = ProductResource()
+            result = resource.import_data(dataset, dry_run=False, raise_errors=False)
+            
+            if result.has_errors():
+                messages.error(request, f"L'importation a rencontré des erreurs ({len(result.row_errors())} lignes en échec).")
+            else:
+                messages.success(request, f"Importation réussie : {result.total_rows} produits traités.")
+            return redirect("inventory:product-list")
+        except Exception as e:
+            messages.error(request, f"Erreur lors de l'importation : {str(e)}")
+            return render(request, self.template_name)
+
+
+class BulkDeleteProductsView(LoginRequiredMixin, GerantRequiredMixin, ListView):
+    """Vue pour supprimer plusieurs produits à la fois."""
+    def post(self, request, *args, **kwargs):
+        product_ids = request.POST.getlist('product_ids')
+        if not product_ids:
+            messages.warning(request, "Aucun article sélectionné.")
+            return redirect('inventory:product-list')
+        
+        products = Product.objects.filter(id__in=product_ids)
+        count = 0
+        errors = 0
+        
+        for product in products:
+            try:
+                product.delete()
+                count += 1
+            except ProtectedError:
+                # Si protégé, on désactive au lieu de supprimer
+                product.is_active = False
+                product.save()
+                errors += 1
+        
+        if count > 0:
+            messages.success(request, f"{count} articles ont été supprimés.")
+        if errors > 0:
+            messages.info(request, f"{errors} articles n'ont pas pu être supprimés (liés à des ventes) et ont été désactivés à la place.")
+            
+        return redirect('inventory:product-list')
+
 class ProductListView(LoginRequiredMixin, ListView):
     model = Product
     template_name = "inventory/product_list.html"
@@ -42,6 +128,16 @@ class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Product
     template_name = "inventory/product_confirm_delete.html"
     success_url = reverse_lazy("inventory:product-list")
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except ProtectedError:
+            product = self.get_object()
+            product.is_active = False
+            product.save()
+            messages.info(request, f"L'article '{product.name}' est lié à des ventes. Il a été désactivé au lieu d'être supprimé.")
+            return redirect(self.success_url)
 
 class StockStatusView(LoginRequiredMixin, ListView):
     model = Product
@@ -76,13 +172,15 @@ class ProductThresholdUpdateView(GerantRequiredMixin, UpdateView):
         return reverse_lazy("inventory:stock-alerts")
 
     def form_valid(self, form):
-        response = super().form_valid(form)
+        # Sauvegarde manuelle pour avoir un contrôle total sur la réponse
+        self.object = form.save()
         if self.request.htmx:
-            # Si HTMX, on redirige vers la liste des alertes (rafraîchissement)
+            # On renvoie un 200 OK avec le header de redirection pour HTMX
             from django.http import HttpResponse
             response = HttpResponse("")
-            response["HX-Redirect"] = self.get_success_url()
-        return response
+            response["HX-Redirect"] = str(self.get_success_url())
+            return response
+        return super().form_valid(form)
 
 
 class StockTransactionCreateView(LoginRequiredMixin, CreateView):
@@ -172,6 +270,9 @@ def get_product_stock_info(request):
         cartons = total // product.conversion_factor
         pieces = total % product.conversion_factor
         
+        # Suggérer l'unité : CARTON si conversion > 1, sinon PIECE
+        suggested_unit = "CARTON" if product.conversion_factor > 1 else "PIECE"
+        
         html = f"""
             <div id="product-info-panel" class="alert alert-warning border-0 shadow-sm mb-3">
                 <div class="d-flex justify-content-between align-items-center">
@@ -179,6 +280,7 @@ def get_product_stock_info(request):
                     <span class="fw-bold fs-5">{total} pièces ({cartons} ct & {pieces} pc)</span>
                 </div>
                 <input type="hidden" id="current_conv_factor" value="{product.conversion_factor}">
+                <input type="hidden" id="suggested_unit" value="{suggested_unit}">
             </div>
         """
         return HttpResponse(html)

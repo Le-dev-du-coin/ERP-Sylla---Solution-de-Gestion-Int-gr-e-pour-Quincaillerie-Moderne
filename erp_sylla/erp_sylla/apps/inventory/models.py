@@ -3,12 +3,34 @@ from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 
+class Category(models.Model):
+    """Catégorie de produits."""
+    name = models.CharField(_("Nom"), max_length=100, unique=True)
+    description = models.TextField(_("Description"), blank=True)
+
+    class Meta:
+        verbose_name = _("Catégorie")
+        verbose_name_plural = _("Catégories")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     """
     Représente un article du catalogue de la quincaillerie.
     Gère les prix en F CFA (entiers) et la conversion Carton -> Pièce.
     """
     name = models.CharField(_("Désignation"), max_length=255)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="products",
+        verbose_name=_("Catégorie")
+    )
     description = models.TextField(_("Description"), blank=True)
     sku = models.CharField(_("SKU / Réf interne"), max_length=50, unique=True, blank=True)
     barcode = models.CharField(_("Code Barre"), max_length=100, blank=True, null=True, unique=True)
@@ -24,6 +46,8 @@ class Product(models.Model):
         help_text=_("Nombre de pièces contenues dans un carton."),
         default=1
     )
+    
+    is_zakat_eligible = models.BooleanField(_("Éligible Zakat"), default=False)
     
     low_stock_threshold = models.PositiveIntegerField(
         _("Seuil d'alerte global (pièces)"),

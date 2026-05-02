@@ -1,6 +1,15 @@
 {% extends "dashboard_base.html" %}
 {% load crispy_forms_tags %}
 
+{% block css %}
+{{ block.super }}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<style>
+    .ts-control { border-radius: 0.75rem !important; padding: 0.75rem 1.25rem !important; border: 0 !important; background-color: #f8f9fa !important; }
+    .ts-dropdown { border-radius: 0.75rem !important; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1) !important; border: 1px solid #f1f5f9 !important; }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
 <div class="container-fluid">
     <div class="row justify-content-center">
@@ -79,7 +88,7 @@
     </div>
 </div>
 
-<!-- Scripts pour l'interactivité -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
     function toggleTransferField(value) {
         const container = document.getElementById('target-warehouse-container');
@@ -139,6 +148,14 @@
         const unitField = document.getElementById('id_input_unit');
         const productField = document.getElementById('id_product');
 
+        if (productField) {
+            new TomSelect('#id_product', {
+                create: false,
+                sortField: { field: "text", order: "asc" },
+                placeholder: "Tapez pour rechercher un article..."
+            });
+        }
+
         if (typeField) {
             toggleTransferField(typeField.value);
             typeField.addEventListener('change', (e) => toggleTransferField(e.target.value));
@@ -159,6 +176,15 @@
     document.addEventListener('htmx:afterOnLoad', function(evt) {
         if (evt.detail.target.id === 'product-stock-info') {
             updateConversionFeedback();
+            
+            // Récupérer l'unité suggérée depuis le panel HTMX et l'appliquer au champ select
+            const suggestedUnitInput = document.getElementById('suggested_unit');
+            const unitSelect = document.getElementById('id_input_unit');
+            if (suggestedUnitInput && unitSelect) {
+                unitSelect.value = suggestedUnitInput.value;
+                // Déclencher manuellement le feedback de conversion
+                updateConversionFeedback();
+            }
         }
     });
 </script>

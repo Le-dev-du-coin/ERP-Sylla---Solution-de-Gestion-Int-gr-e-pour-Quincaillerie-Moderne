@@ -48,6 +48,14 @@ class StockTransactionForm(forms.ModelForm):
     class Meta:
         model = StockTransaction
         fields = ["product", "warehouse", "type", "to_warehouse", "input_unit", "quantity", "notes"]
+        labels = {
+            "product": _("Article"),
+            "warehouse": _("Entrepôt"),
+            "type": _("Type de mouvement"),
+            "to_warehouse": _("Entrepôt de destination"),
+            "quantity": _("Quantité"),
+            "notes": _("Notes / Motif"),
+        }
         widgets = {
             "type": forms.Select(attrs={
                 "class": "form-select rounded-3",
