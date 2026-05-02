@@ -14,17 +14,57 @@ body {
 #wrapper {
     display: flex;
     width: 100%;
-    align-items: stretch;
+    height: 100vh;
+    overflow: hidden;
 }
 
 #sidebar {
     min-width: var(--sidebar-width);
     max-width: var(--sidebar-width);
-    background: #1e293b; /* Slate-800 - Un peu plus clair que le noir */
+    background: #1e293b; /* Slate-800 */
     color: #f8fafc;
-    transition: all 0.3s;
-    min-height: 100vh;
+    transition: margin-left 0.3s ease, min-width 0.3s ease, max-width 0.3s ease;
+    height: 100vh;
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* État replié sur ordinateur */
+@media (min-width: 769px) {
+    #sidebar.active {
+        margin-left: calc(-1 * var(--sidebar-width));
+    }
+}
+
+#sidebar .sidebar-header {
+    flex-shrink: 0; /* Empêche l'en-tête de se compresser */
+}
+
+#sidebar ul.components {
+    padding: 10px 0;
+    overflow-y: auto; /* Seule la liste des menus est scrollable */
+    flex-grow: 1;
+}
+
+#sidebar .sidebar-footer {
+    flex-shrink: 0; /* Empêche le footer de se compresser */
+}
+
+.fw-black { font-weight: 800; }
+.tracking-tighter { letter-spacing: -1px; }
+
+/* Custom Scrollbar pour le menu sidebar (plus discret) */
+#sidebar ul.components::-webkit-scrollbar {
+    width: 4px;
+}
+#sidebar ul.components::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+#sidebar ul.components:hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
 }
 
 #sidebar .text-muted {
@@ -80,9 +120,10 @@ body {
 }
 
 #content {
-    width: 100%;
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
     padding: 20px;
-    min-height: 100vh;
     transition: all 0.3s;
 }
 
@@ -94,9 +135,39 @@ body {
 /* Mobile responsive */
 @media (max-width: 768px) {
     #sidebar {
-        margin-left: calc(-1 * var(--sidebar-width));
+        position: fixed;
+        left: -100%;
+        top: 0;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        z-index: 2000;
+        transition: left 0.3s ease;
     }
+    
     #sidebar.active {
-        margin-left: 0;
+        left: 0;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+    }
+
+    #content {
+        padding: 15px;
+        width: 100vw;
+    }
+
+    /* Overlay quand la sidebar est ouverte sur mobile */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(2px);
+        z-index: 1500;
+    }
+    .sidebar-overlay.active {
+        display: block;
     }
 }
