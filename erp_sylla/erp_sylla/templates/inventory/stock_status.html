@@ -16,26 +16,32 @@
                 <thead class="bg-light">
                     <tr>
                         <th class="ps-4">Article</th>
-                        <th>Référence</th>
-                        <th class="text-center">Conversion</th>
+                        <th class="d-none d-lg-table-cell">Référence</th>
+                        <th class="text-center d-none d-md-table-cell">Conversion</th>
                         <th class="text-center">Stock Total (Pièces)</th>
-                        <th class="text-end pe-4">État Détaillé</th>
+                        <th class="text-end pe-4 d-none d-sm-table-cell">État Détaillé</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for product in products %}
                     <tr>
                         <td class="ps-4">
-                            <div class="fw-medium text-dark">{{ product.name }}</div>
+                            <div class="fw-bold text-dark">{{ product.name }}</div>
+                            <div class="d-lg-none small text-muted">{{ product.sku }}</div>
+                            <div class="d-sm-none mt-1">
+                                <span class="badge bg-info-subtle text-primary rounded-pill px-2" style="font-size: 0.7rem;">
+                                    {{ product.formatted_stock }}
+                                </span>
+                            </div>
                         </td>
-                        <td><span class="badge bg-light text-dark border">{{ product.sku }}</span></td>
-                        <td class="text-center small text-muted">1 ct = {{ product.conversion_factor }} pc</td>
+                        <td class="d-none d-lg-table-cell"><span class="badge bg-light text-dark border">{{ product.sku }}</span></td>
+                        <td class="text-center small text-muted d-none d-md-table-cell">1 ct = {{ product.conversion_factor }} pc</td>
                         <td class="text-center">
                             <span class="fs-5 fw-bold {% if product.total_stock > 0 %}text-success{% else %}text-danger opacity-50{% endif %}">
                                 {{ product.total_stock }}
                             </span>
                         </td>
-                        <td class="text-end pe-4">
+                        <td class="text-end pe-4 d-none d-sm-table-cell">
                             <span class="badge {% if product.total_stock > 0 %}bg-info-subtle text-primary{% else %}bg-light text-muted{% endif %} rounded-pill px-3 py-2">
                                 {{ product.formatted_stock }}
                             </span>

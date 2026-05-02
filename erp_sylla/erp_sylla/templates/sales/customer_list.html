@@ -113,7 +113,13 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Téléphone WhatsApp</label>
-                        <input type="text" name="phone" class="form-control rounded-3" placeholder="Ex: +22370000000">
+                        <input type="text" name="phone" id="customer_phone_input" class="form-control rounded-3" 
+                               placeholder="Ex: 22370000000 (12 chiffres)" 
+                               maxlength="12" 
+                               required>
+                        <div id="phone_alert" class="text-danger small mt-1" style="display: none;">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Le numéro doit comporter exactement 12 chiffres.
+                        </div>
                     </div>
                     <div class="mb-0">
                         <label class="form-label fw-bold">Adresse</label>
@@ -128,4 +134,39 @@
         </div>
     </div>
 </div>
+{% endblock dashboard_content %}
+
+{% block inline_javascript %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.getElementById('customer_phone_input');
+        const phoneAlert = document.getElementById('phone_alert');
+        const submitBtn = phoneInput.closest('form').querySelector('button[type="submit"]');
+
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                // Supprimer tout ce qui n'est pas un chiffre
+                this.value = this.value.replace(/\D/g, '');
+                
+                if (this.value.length > 0 && this.value.length !== 12) {
+                    phoneAlert.style.display = 'block';
+                    this.classList.add('is-invalid');
+                } else {
+                    phoneAlert.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+            });
+
+            phoneInput.closest('form').addEventListener('submit', function(e) {
+                if (phoneInput.value.length !== 12) {
+                    e.preventDefault();
+                    phoneAlert.style.display = 'block';
+                    phoneInput.classList.add('is-invalid');
+                    phoneInput.focus();
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

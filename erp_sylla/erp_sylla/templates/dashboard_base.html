@@ -133,9 +133,12 @@
     <div id="content">
         <nav class="navbar navbar-expand-lg">
             <div class="container-fluid p-0">
-                <button type="button" id="sidebarCollapse" class="btn btn-white shadow-sm border rounded-3 me-3">
-                    <i class="fas fa-bars"></i>
-                </button>
+                <div class="d-flex align-items-center flex-grow-1">
+                    <button type="button" id="sidebarCollapse" class="btn btn-white shadow-sm border rounded-3 me-3">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    {% block navbar_custom %}{% endblock %}
+                </div>
                 <div class="ms-auto">
                     <!-- Vide car déplacé dans la sidebar -->
                 </div>

@@ -1,53 +1,59 @@
 {% extends "dashboard_base.html" %}
 {% load static %}
 
-{% block dashboard_content %}
-<div class="container-fluid py-2">
-    <!-- Barre de recherche -->
-    <div class="bg-white shadow-sm p-3 mb-4 rounded-4 border-0">
-        <div class="input-group input-group-lg border rounded-pill overflow-hidden bg-light">
-            <span class="input-group-text border-0 bg-transparent ps-4">
-                <i class="fas fa-search text-muted"></i>
-            </span>
-            <input type="text" 
-                   name="q" 
-                   id="pos-search-input"
-                   class="form-control border-0 bg-transparent shadow-none" 
-                   placeholder="Rechercher un article..."
-                   hx-get="{% url 'sales:ajax-product-search' %}"
-                   hx-trigger="keyup changed delay:300ms"
-                   hx-target="#search-results"
-                   hx-select="#search-results-list"
-                   hx-swap="innerHTML"
-                   hx-indicator=".search-spinner">
-            <div class="search-spinner htmx-indicator p-3">
-                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-            </div>
+{% block navbar_custom %}
+<div class="flex-grow-1 max-w-lg">
+    <div class="input-group border rounded-pill overflow-hidden bg-light shadow-sm" style="max-width: 600px;">
+        <span class="input-group-text border-0 bg-transparent ps-3">
+            <i class="fas fa-search text-muted small"></i>
+        </span>
+        <input type="text" 
+               name="q" 
+               id="pos-search-input"
+               class="form-control form-control-sm border-0 bg-transparent shadow-none" 
+               placeholder="Scanner ou rechercher un article..."
+               hx-get="{% url 'sales:ajax-product-search' %}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#search-results"
+               hx-select="#search-results-list"
+               hx-swap="innerHTML"
+               hx-indicator=".search-spinner"
+               autocomplete="off"
+               style="height: 40px;">
+        <div class="search-spinner htmx-indicator d-flex align-items-center pe-3">
+            <div class="spinner-border spinner-border-sm text-primary" role="status" style="width: 1rem; height: 1rem;"></div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <div class="row g-4 px-3 pb-5">
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
         <!-- Zone des Résultats de Recherche -->
-        <div class="col-12 col-lg-8">
-            <div id="search-results" style="max-height: calc(100vh - 200px); overflow-y: auto; padding-bottom: 50px;">
-                <div class="text-center py-5 text-muted bg-white rounded-4 shadow-sm">
-                    <i class="fas fa-barcode fa-3x mb-3 opacity-25"></i>
-                    <p>Saisissez le nom ou la référence d'un article pour commencer la vente.</p>
+        <div class="col-12 col-lg-8 border-end">
+            <div id="search-results" class="p-3 p-md-4" style="min-height: calc(100vh - 80px);">
+                <div class="text-center py-5 text-muted bg-white rounded-4 border border-dashed p-5 mt-2">
+                    <i class="fas fa-barcode fa-4x mb-3 opacity-10"></i>
+                    <h5 class="fw-bold">Prêt pour la vente</h5>
+                    <p class="small">Saisissez le nom, la référence ou scannez l'article.</p>
                 </div>
             </div>
         </div>
 
         <!-- Zone du Panier -->
-        <div class="col-12 col-lg-4">
-            <div class="card border-0 shadow-sm rounded-4 sticky-lg-top" style="top: 100px;">
-                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold">Panier</h5>
-                    <div id="cart-counter-container">
-                        <span class="badge bg-primary rounded-pill">{{ basket.total_items }} article{{ basket.total_items|pluralize }}</span>
+        <div class="col-12 col-lg-4 bg-light">
+            <div class="sticky-lg-top p-4" style="top: 80px;">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center px-4">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-shopping-cart me-2 text-primary"></i>Panier</h5>
+                        <div id="cart-counter-container">
+                            <span class="badge bg-primary rounded-pill px-3">{{ basket.total_items }} article{{ basket.total_items|pluralize }}</span>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body p-0">
-                    {% include "sales/_cart_detail.html" %}
+                    <div class="card-body p-0">
+                        {% include "sales/_cart_detail.html" %}
+                    </div>
                 </div>
             </div>
         </div>
