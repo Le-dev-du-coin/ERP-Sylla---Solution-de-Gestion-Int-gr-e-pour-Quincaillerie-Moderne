@@ -5,43 +5,51 @@
     <meta charset="UTF-8">
     <title>Reçu de Paiement - {{ payment.reference }}</title>
     <style>
-        @page { size: A5 landscape; margin: 1cm; }
-        body { font-family: 'Helvetica', sans-serif; font-size: 10pt; color: #333; }
-        .header { border-bottom: 2px solid #27ae60; padding-bottom: 10px; margin-bottom: 15px; }
-        .title { color: #27ae60; font-size: 16pt; font-weight: bold; text-transform: uppercase; }
-        .content { margin-bottom: 20px; }
-        .amount-box { background-color: #f8f9fa; border: 2px solid #27ae60; padding: 15px; text-align: center; border-radius: 8px; margin: 15px 0; }
-        .amount { font-size: 20pt; font-weight: bold; color: #27ae60; }
-        .footer { border-top: 1px solid #eee; padding-top: 10px; margin-top: 20px; text-align: center; font-size: 8pt; color: #999; }
+        @page { size: A5 landscape; margin: 0.70cm; }
+        body { font-family: 'Helvetica', sans-serif; font-size: 10pt; color: #333; margin: 0; padding: 0; }
+        .header { border-bottom: 2px solid #27ae60; padding-bottom: 8px; margin-bottom: 12px; }
+        .title { color: #27ae60; font-size: 14pt; font-weight: bold; text-transform: uppercase; }
+        .content { margin-bottom: 12px; }
+        .amount-box { background-color: #f8f9fa; border: 2px solid #27ae60; padding: 12px; text-align: center; border-radius: 8px; margin: 12px 0; }
+        .amount { font-size: 18pt; font-weight: bold; color: #27ae60; }
+        .footer { border-top: 1px solid #eee; padding-top: 8px; margin-top: 12px; text-align: center; font-size: 8pt; color: #999; }
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 5px 0; }
+        td { padding: 4px 0; }
         .label { color: #7f8c8d; width: 40%; }
         .value { font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="header">
-        <div style="float: right; text-align: right;">
-            <div class="title">REÇU DE PAIEMENT</div>
-            <div style="font-weight: bold;">N° {{ payment.reference }}</div>
+        <div style="text-align: center; margin-bottom: 8px;">
+            <h2 style="margin:0; font-size: 12pt;">ETABLISSEMENT SYLLA MADJOU ET FILS</h2>
+            <h3 style="margin:0; font-size: 10pt; color: #2c3e50;">CHEZ MADJOU SYLLA</h3>
+            <div style="font-size: 8pt; font-weight: bold; margin-top: 4px;">Cell: 76 44 56 19 / 65 98 91 91 / 66 44 56 19</div>
+            <div style="font-size: 8pt;">Marché de N'Golonina en face de Djiguiba Trans | Bamako - Rép. du Mali</div>
         </div>
-        <div>
-            <h2 style="margin:0;">ETS SYLLA MADJOU</h2>
-            <div style="font-size: 8pt;">Quincaillerie & Matériaux de Construction</div>
-            <div style="font-size: 8pt;">Bamako, Mali | Tel: +223 70 00 00 00</div>
+        <div style="border-top: 1px solid #27ae60; padding-top: 8px; display: table; width: 100%;">
+            <div style="display: table-cell; width: 50%;">
+                <div class="title">REÇU DE PAIEMENT</div>
+            </div>
+            <div style="display: table-cell; width: 50%; text-align: right;">
+                <div style="font-weight: bold;">N° {{ payment.reference }}</div>
+                <div style="font-size: 9pt;">Date : {{ payment.created_at|date:"d/m/Y" }}</div>
+            </div>
         </div>
-        <div style="clear: both;"></div>
     </div>
 
     <div class="content">
-        <p>Reçu de <strong>{{ payment.customer.name }}</strong></p>
+        <p style="margin: 8px 0;">Reçu de <strong>{{ payment.customer.name }}</strong></p>
         
         <div class="amount-box">
-            <div style="font-size: 9pt; text-transform: uppercase; margin-bottom: 5px;">Montant Versé</div>
+            <div style="font-size: 8pt; text-transform: uppercase; margin-bottom: 4px;">Montant Versé</div>
             <div class="amount">{{ payment.amount|money }}</div>
+            <div style="font-size: 9pt; font-style: italic; margin-top: 6px; color: #444;">
+                {{ payment.amount|amount_to_words }}
+            </div>
         </div>
 
-        <table>
+        <table style="margin-top: 8px;">
             <tr>
                 <td class="label">Mode de paiement :</td>
                 <td class="value">{{ payment.get_payment_method_display }}</td>
@@ -54,20 +62,20 @@
                 <td class="label">Motif / Notes :</td>
                 <td class="value">{{ payment.notes|default:"Règlement de dette" }}</td>
             </tr>
-            <tr style="border-top: 1px dashed #ddd; padding-top: 10px;">
-                <td class="label" style="padding-top:10px;">Reste à payer :</td>
-                <td class="value" style="padding-top:10px; font-size: 12pt; color: #c0392b;">{{ payment.balance_after|money }}</td>
+            <tr style="border-top: 1px dashed #ddd;">
+                <td class="label" style="padding-top:6px;">Reste à payer :</td>
+                <td class="value" style="padding-top:6px; font-size: 11pt; color: #c0392b;">{{ payment.balance_after|money }}</td>
             </tr>
         </table>
     </div>
 
-    <div style="margin-top: 20px; display: table; width: 100%;">
+    <div style="margin-top: 15px; display: table; width: 100%;">
         <div style="display: table-cell; width: 50%;">
-            <div style="font-size: 8pt; text-decoration: underline; margin-bottom: 40px;">Signature Client</div>
+            <div style="font-size: 8pt; text-decoration: underline; margin-bottom: 30px;">Signature Client</div>
             <div>_________________</div>
         </div>
         <div style="display: table-cell; width: 50%; text-align: right;">
-            <div style="font-size: 8pt; text-decoration: underline; margin-bottom: 40px;">Signature Caissier</div>
+            <div style="font-size: 8pt; text-decoration: underline; margin-bottom: 30px;">Signature Caissier</div>
             <div>_________________</div>
         </div>
     </div>

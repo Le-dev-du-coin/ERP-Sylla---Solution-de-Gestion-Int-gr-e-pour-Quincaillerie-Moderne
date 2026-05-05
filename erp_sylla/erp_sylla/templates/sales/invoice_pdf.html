@@ -143,16 +143,21 @@
 </head>
 <body>
     <div class="header">
-        <div class="header-column company-info">
-            <h1>ETS SYLLA MADJOU</h1>
-            <p>Vente de Matériaux de Construction & Quincaillerie Générale</p>
-            <p>Siège : Bamako, Mali</p>
-            <p>Contact : +223 70 00 00 00 / +223 60 00 00 00</p>
+        <div class="header-column company-info" style="text-align: center;">
+            <h1 style="font-size: 20pt; margin-bottom: 5px;">ETABLISSEMENT SYLLA MADJOU ET FILS</h1>
+            <h2 style="font-size: 18pt; margin-top: 0; color: #2c3e50;">CHEZ MADJOU SYLLA</h2>
+            <p style="font-size: 11pt; font-weight: bold; margin-top: 10px;">Cell: 76 44 56 19 / 65 98 91 91 / 66 44 56 19</p>
+            <p style="font-size: 10pt;">Marché de N'Golonina en face de Djiguiba Trans</p>
+            <p style="font-size: 10pt;">Bamako - Rép. du Mali</p>
         </div>
-        <div class="header-column document-title">
-            <h2>{% if sale.type == 'SALE' %}FACTURE{% else %}DEVIS{% endif %}</h2>
-            <p><strong>N° : {{ sale.invoice_number }}</strong></p>
-            <p>Date : {{ sale.created_at|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    <div style="display: table; width: 100%; margin-bottom: 0.5cm; border-top: 1px solid #333; padding-top: 10px;">
+        <div style="display: table-cell; width: 50%;">
+            <h3 style="margin: 0; color: #27ae60; font-size: 16pt;">{% if sale.type == 'SALE' %}FACTURE{% else %}DEVIS{% endif %} N° {{ sale.invoice_number }}</h3>
+        </div>
+        <div style="display: table-cell; width: 50%; text-align: right;">
+            <p style="margin: 0;"><strong>Bamako le :</strong> {{ sale.created_at|date:"d/m/Y" }}</p>
         </div>
     </div>
 
@@ -201,7 +206,7 @@
         <tbody>
             {% for item in sale.items.all %}
             <tr>
-                <td><strong>{{ item.product.name }}</strong><br><small>{{ item.product.sku }}</small></td>
+                <td><strong>{{ item.product.name }}</strong></td>
                 <td class="text-right">{{ item.quantity }}</td>
                 <td>{{ item.get_unit_display }}</td>
                 <td class="text-right">{{ item.unit_price|money }}</td>
@@ -226,8 +231,8 @@
 
     <div class="amount-in-words">
         <p>
-            <strong>Arrêtée la présente facture à la somme de :</strong> 
-            <span style="font-style: italic; text-transform: capitalize;">{{ sale.total_amount|money }} (Francs CFA)</span>
+            <strong>Arrêtée la présente {% if sale.type == 'SALE' %}facture{% else %}proforma{% endif %} à la somme de :</strong> 
+            <span style="font-style: italic;">{{ sale.total_amount|amount_to_words }}</span>
         </p>
     </div>
 

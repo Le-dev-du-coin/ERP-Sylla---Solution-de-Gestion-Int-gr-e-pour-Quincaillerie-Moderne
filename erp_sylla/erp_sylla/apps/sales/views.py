@@ -198,20 +198,24 @@ def cart_remove(request, product_id, unit):
 @login_required
 @require_POST
 def cart_update(request, product_id, unit):
-    """Met à jour la quantité d'un article."""
+    """Met à jour la quantité ou le prix d'un article."""
     basket = Basket(request)
-    action = request.POST.get("action") # 'plus' or 'minus'
+    action = request.POST.get("action")
+    price = request.POST.get("price")
 
     # On récupère la quantité actuelle
     key = f"{product_id}_{unit}"
     current_qty = basket.basket.get(key, {}).get("quantity", 0)
 
+    new_qty = None
     if action == "plus":
         new_qty = current_qty + 1
-    else:
+    elif action == "minus":
         new_qty = current_qty - 1
-
-    basket.update(product_id, unit, new_qty)
+    
+    # Mise à jour (quantité et/ou prix)
+    basket.update(product_id, unit, quantity=new_qty, price=price)
+    
     return render(request, "sales/_cart_detail.html", {"basket": basket, "is_htmx": True})
 
 

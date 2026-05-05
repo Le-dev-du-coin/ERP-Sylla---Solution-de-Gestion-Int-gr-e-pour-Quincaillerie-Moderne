@@ -1,5 +1,6 @@
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
+from num2words import num2words
 
 register = template.Library()
 
@@ -20,5 +21,15 @@ def money(value):
         formatted = intcomma(value).replace(",", " ")
         return f"{formatted} F CFA"
     except: return f"{value} F CFA"
+
+@register.filter(name="amount_to_words")
+def amount_to_words(value):
+    """Convertit un montant en toutes lettres (Français)."""
+    if value is None: return ""
+    try:
+        words = num2words(value, lang='fr')
+        return f"{words} francs CFA".capitalize()
+    except Exception:
+        return f"{value} francs CFA"
 
 

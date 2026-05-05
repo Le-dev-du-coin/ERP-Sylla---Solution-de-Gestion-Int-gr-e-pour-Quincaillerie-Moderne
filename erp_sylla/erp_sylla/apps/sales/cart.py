@@ -29,10 +29,16 @@ class Basket:
         price = product.sale_price_piece if unit == "PIECE" else product.sale_price_carton
 
         if key not in self.basket:
+            # On calcule le prix d'achat équivalent pour l'unité choisie
+            purchase_price_unit = product.purchase_price
+            if unit == "CARTON":
+                purchase_price_unit = product.purchase_price * product.conversion_factor
+
             self.basket[key] = {
                 "product_id": product.id,
                 "name": product.name,
                 "price": price,
+                "purchase_price": purchase_price_unit,
                 "unit": unit,
                 "quantity": 0,
                 "sku": product.sku
@@ -48,14 +54,22 @@ class Basket:
             del self.basket[key]
             self.save()
 
-    def update(self, product_id, unit, quantity):
-        """Met à jour la quantité d'une ligne."""
+    def update(self, product_id, unit, quantity=None, price=None):
+        """Met à jour la quantité ou le prix d'une ligne."""
         key = f"{product_id}_{unit}"
         if key in self.basket:
-            if quantity <= 0:
-                del self.basket[key]
-            else:
-                self.basket[key]["quantity"] = quantity
+            if quantity is not None:
+                if quantity <= 0:
+                    del self.basket[key]
+                else:
+                    self.basket[key]["quantity"] = quantity
+            
+            if price is not None:
+                try:
+                    self.basket[key]["price"] = int(price)
+                except (ValueError, TypeError):
+                    pass
+            
             self.save()
 
     def clear(self):
