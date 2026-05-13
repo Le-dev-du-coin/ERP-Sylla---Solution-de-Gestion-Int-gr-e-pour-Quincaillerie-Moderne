@@ -213,8 +213,6 @@ def send_daily_report_task():
     send_whatsapp_message(
         phone=config.manager_phone_1,
         message=message,
-        media_url=public_url,
-        filename=filename,
         instance_id=config.wachap_instance_id,
         token=config.wachap_token
     )
@@ -223,8 +221,6 @@ def send_daily_report_task():
         send_whatsapp_message(
             phone=config.manager_phone_2,
             message=message,
-            media_url=public_url,
-            filename=filename,
             instance_id=config.wachap_instance_id,
             token=config.wachap_token
         )

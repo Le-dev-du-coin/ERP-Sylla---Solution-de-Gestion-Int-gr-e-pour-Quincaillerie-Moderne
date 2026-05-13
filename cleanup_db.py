@@ -13,6 +13,8 @@ django.setup()
 from erp_sylla.apps.sales.models import Sale, Payment, SaleItem, Customer
 from erp_sylla.apps.inventory.models import StockTransaction, Product, Category, Warehouse
 from erp_sylla.apps.communications.models import WhatsAppNotification, DailyReport
+from erp_sylla.apps.core.models import Expense, ExpenseCategory
+from erp_sylla.apps.logistics.models import Container, ContainerExpense, LogisticsSupplier
 from django.db import connection
 
 def cleanup():
@@ -24,25 +26,35 @@ def cleanup():
         DailyReport.objects.all().delete()
         print("✅ Notifications et Rapports supprimés.")
 
-        # 2. Supprimer d'abord les objets dépendants (SaleItem, StockTransaction)
-        # pour éviter les erreurs de Protected ForeignKey
+        # 2. Supprimer la logistique (Conteneurs et Fournisseurs logistiques)
+        ContainerExpense.objects.all().delete()
+        Container.objects.all().delete()
+        LogisticsSupplier.objects.all().delete()
+        print("✅ Logistique (Conteneurs et Fournisseurs) vidée.")
+
+        # 3. Supprimer les dépenses (Core)
+        Expense.objects.all().delete()
+        # On peut garder les catégories de dépenses car ce sont des paramètres
+        print("✅ Dépenses vidées.")
+
+        # 4. Supprimer d'abord les objets dépendants (SaleItem, StockTransaction)
         SaleItem.objects.all().delete()
         StockTransaction.objects.all().delete()
         print("✅ Lignes de ventes et Transactions de stock supprimées.")
 
-        # 3. Supprimer les ventes et paiements
+        # 5. Supprimer les ventes et paiements
         Sale.objects.all().delete()
         Payment.objects.all().delete()
         print("✅ Ventes et Paiements supprimés.")
 
-        # 4. Supprimer les données de base (Produits, Clients, etc.)
+        # 6. Supprimer les données de base (Produits, Clients, etc.)
         Product.objects.all().delete()
         Category.objects.all().delete()
         Warehouse.objects.all().delete()
         Customer.objects.all().delete()
         print("✅ Produits, Catégories, Entrepôts et Clients supprimés.")
 
-        # 5. Réinitialiser les compteurs d'ID (Séquences PostgreSQL)
+        # 7. Réinitialiser les compteurs d'ID (Séquences PostgreSQL)
         with connection.cursor() as cursor:
             tables = [
                 'sales_sale', 
@@ -54,7 +66,11 @@ def cleanup():
                 'inventory_category',
                 'inventory_warehouse',
                 'communications_whatsappnotification',
-                'communications_dailyreport'
+                'communications_dailyreport',
+                'core_expense',
+                'logistics_container',
+                'logistics_containerexpense',
+                'logistics_logisticssupplier'
             ]
             for table in tables:
                 try:
