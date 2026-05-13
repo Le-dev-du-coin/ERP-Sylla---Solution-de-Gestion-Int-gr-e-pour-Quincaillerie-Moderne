@@ -24,24 +24,25 @@ def cleanup():
         DailyReport.objects.all().delete()
         print("✅ Notifications et Rapports supprimés.")
 
-        # 2. Supprimer les transactions de stock et l'inventaire
+        # 2. Supprimer d'abord les objets dépendants (SaleItem, StockTransaction)
+        # pour éviter les erreurs de Protected ForeignKey
+        SaleItem.objects.all().delete()
         StockTransaction.objects.all().delete()
+        print("✅ Lignes de ventes et Transactions de stock supprimées.")
+
+        # 3. Supprimer les ventes et paiements
+        Sale.objects.all().delete()
+        Payment.objects.all().delete()
+        print("✅ Ventes et Paiements supprimés.")
+
+        # 4. Supprimer les données de base (Produits, Clients, etc.)
         Product.objects.all().delete()
         Category.objects.all().delete()
         Warehouse.objects.all().delete()
-        print("✅ Inventaire (Produits, Catégories, Entrepôts, Stocks) vidé.")
-
-        # 3. Supprimer les ventes et lignes de vente
-        SaleItem.objects.all().delete()
-        Sale.objects.all().delete()
-        print("✅ Toutes les ventes et devis supprimés.")
-
-        # 4. Supprimer les paiements et les clients
-        Payment.objects.all().delete()
         Customer.objects.all().delete()
-        print("✅ Historique des paiements et base Clients supprimés.")
+        print("✅ Produits, Catégories, Entrepôts et Clients supprimés.")
 
-        # 5. Réinitialiser les compteurs d'ID (Séquences PostgreSQL) pour repartir de 1
+        # 5. Réinitialiser les compteurs d'ID (Séquences PostgreSQL)
         with connection.cursor() as cursor:
             tables = [
                 'sales_sale', 
@@ -61,6 +62,16 @@ def cleanup():
                 except Exception:
                     continue
         print("✅ Numérotation (IDs) réinitialisée pour toutes les tables.")
+
+        # 6. Test d'envoi de rapport (Optionnel mais recommandé)
+        print("\n✉️  ENVOI D'UN RAPPORT DE TEST AU GÉRANT...")
+        from erp_sylla.apps.sales.tasks import send_daily_report_task
+        # On appelle la fonction directement (synchrone) pour le test
+        try:
+            result = send_daily_report_task()
+            print(f"✅ Résultat du test d'envoi : {result}")
+        except Exception as tel_err:
+            print(f"⚠️  Échec du test d'envoi (vérifiez la config API) : {str(tel_err)}")
 
         print("\n✨ NETTOYAGE COMPLET TERMINÉ. Seuls les Utilisateurs et Paramètres sont conservés.")
         
