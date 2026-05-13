@@ -11,12 +11,12 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
 django.setup()
 
 from erp_sylla.apps.sales.models import Sale, Payment, SaleItem, Customer
-from erp_sylla.apps.inventory.models import StockTransaction
+from erp_sylla.apps.inventory.models import StockTransaction, Product, Category, Warehouse
 from erp_sylla.apps.communications.models import WhatsAppNotification, DailyReport
 from django.db import connection
 
 def cleanup():
-    print("\n⚠️  DÉBUT DU NETTOYAGE DE LA BASE DE DONNÉES...")
+    print("\n⚠️  DÉBUT DU NETTOYAGE GLOBAL DE LA BASE DE DONNÉES...")
     
     try:
         # 1. Supprimer les notifications et rapports
@@ -24,31 +24,34 @@ def cleanup():
         DailyReport.objects.all().delete()
         print("✅ Notifications et Rapports supprimés.")
 
-        # 2. Supprimer les transactions de stock (remise à zéro des stocks réels)
+        # 2. Supprimer les transactions de stock et l'inventaire
         StockTransaction.objects.all().delete()
-        print("✅ Historique des stocks vidé.")
+        Product.objects.all().delete()
+        Category.objects.all().delete()
+        Warehouse.objects.all().delete()
+        print("✅ Inventaire (Produits, Catégories, Entrepôts, Stocks) vidé.")
 
         # 3. Supprimer les ventes et lignes de vente
         SaleItem.objects.all().delete()
         Sale.objects.all().delete()
         print("✅ Toutes les ventes et devis supprimés.")
 
-        # 4. Supprimer les paiements clients
+        # 4. Supprimer les paiements et les clients
         Payment.objects.all().delete()
-        print("✅ Historique des paiements vidé.")
+        Customer.objects.all().delete()
+        print("✅ Historique des paiements et base Clients supprimés.")
 
-        # 5. Remise à zéro des soldes clients (Dettes)
-        Customer.objects.update(balance=0)
-        print("✅ Soldes clients réinitialisés à 0.")
-
-        # 6. Réinitialiser les compteurs d'ID (Séquences PostgreSQL) pour repartir de 1
+        # 5. Réinitialiser les compteurs d'ID (Séquences PostgreSQL) pour repartir de 1
         with connection.cursor() as cursor:
-            # On liste les tables critiques pour réinitialiser leurs séquences
             tables = [
                 'sales_sale', 
                 'sales_saleitem', 
                 'sales_payment', 
+                'sales_customer',
                 'inventory_stocktransaction',
+                'inventory_product',
+                'inventory_category',
+                'inventory_warehouse',
                 'communications_whatsappnotification',
                 'communications_dailyreport'
             ]
@@ -56,18 +59,17 @@ def cleanup():
                 try:
                     cursor.execute(f"ALTER SEQUENCE {table}_id_seq RESTART WITH 1;")
                 except Exception:
-                    # Si la séquence a un nom différent ou n'existe pas, on passe
                     continue
-        print("✅ Numérotation (IDs) réinitialisée pour les nouvelles données.")
+        print("✅ Numérotation (IDs) réinitialisée pour toutes les tables.")
 
-        print("\n✨ NETTOYAGE TERMINÉ. La base est propre et prête.")
+        print("\n✨ NETTOYAGE COMPLET TERMINÉ. Seuls les Utilisateurs et Paramètres sont conservés.")
         
     except Exception as e:
         print(f"\n❌ ERREUR LORS DU NETTOYAGE : {str(e)}")
 
 if __name__ == "__main__":
     print(f"Configuration utilisée : {os.environ.get('DJANGO_SETTINGS_MODULE')}")
-    confirm = input("\n🔥 ATTENTION : Vous allez supprimer TOUTES les données de ventes et stocks.\nLes Produits et Clients seront conservés.\nVoulez-vous continuer ? (oui/non) : ")
+    confirm = input("\n🔥 ATTENTION : Vous allez supprimer TOUTES les données (Ventes, Stocks, Clients, Produits).\nSeuls les Utilisateurs et les Paramètres de configuration seront conservés.\nVoulez-vous continuer ? (oui/non) : ")
     
     if confirm.lower() == 'oui':
         cleanup()
