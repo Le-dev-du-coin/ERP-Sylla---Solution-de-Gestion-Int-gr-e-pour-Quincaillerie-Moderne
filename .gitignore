@@ -40,6 +40,7 @@ ENV/
 gulpfile.mjs
 
 # Project Specific
+WHATSAPP_API_GUIDE.md
 erp_sylla/erp_sylla/media/
 Resources/
 *.min.js

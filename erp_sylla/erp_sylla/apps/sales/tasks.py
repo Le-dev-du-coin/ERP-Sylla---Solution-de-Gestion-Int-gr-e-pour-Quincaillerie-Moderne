@@ -125,7 +125,7 @@ def send_payment_notification_whatsapp_task(payment_id):
         # On va utiliser le même mécanisme de token sécurisé que pour les factures
         from erp_sylla.apps.communications.models import WhatsAppNotification
         notification = WhatsAppNotification.objects.create(
-            sale=payment.customer.sales.first(), # Hack temporaire car Sale est requis dans Notif
+            sale=None, 
             phone=customer.phone,
             expires_at=timezone.now() + timedelta(hours=config.link_validity_hours),
             status=WhatsAppNotification.Status.PENDING
@@ -214,6 +214,8 @@ def send_daily_report_task():
     send_whatsapp_message(
         phone=config.manager_phone_1,
         message=message,
+        media_url=public_url,
+        filename=filename,
         instance_id=config.wachap_instance_id,
         token=config.wachap_token
     )
@@ -222,6 +224,8 @@ def send_daily_report_task():
         send_whatsapp_message(
             phone=config.manager_phone_2,
             message=message,
+            media_url=public_url,
+            filename=filename,
             instance_id=config.wachap_instance_id,
             token=config.wachap_token
         )

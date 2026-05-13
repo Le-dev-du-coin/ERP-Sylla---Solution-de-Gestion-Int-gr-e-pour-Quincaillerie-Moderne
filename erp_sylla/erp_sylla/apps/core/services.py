@@ -23,8 +23,14 @@ def send_whatsapp_message(phone, message, media_url=None, filename=None, instanc
         message = f" [MODE TEST - Pour: {phone}] \n" + message
 
     url = "https://api.wachap.com/v1/whatsapp/messages/send"
-    
-    payload = {
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    # 1. Envoi du message texte (Toujours)
+    payload_text = {
         "data": {
             "accountId": instance_id,
             "to": target_phone,
@@ -33,28 +39,34 @@ def send_whatsapp_message(phone, message, media_url=None, filename=None, instanc
         }
     }
     
-    # Gestion des médias (Correction API Wachap : imageUrl pour type=image, documentUrl pour type=document)
-    if media_url:
-        if filename and filename.lower().endswith(".pdf"):
-            payload["data"]["type"] = "document"
-            payload["data"]["documentUrl"] = media_url
-            payload["data"]["filename"] = filename
-        else:
-            payload["data"]["type"] = "image"
-            payload["data"]["imageUrl"] = media_url
-        
-        payload["data"]["content"] = message # Fallback
-        payload["data"]["caption"] = message # Spécifique Wachap pour les médias
-
-    headers = {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "Authorization": f"Bearer {token}"
-    }
-
     try:
-        response = requests.post(url, json=payload, headers=headers, timeout=20)
-        return response.json()
+        response_text = requests.post(url, json=payload_text, headers=headers, timeout=20)
+        result = response_text.json()
+        
+        # 2. Envoi du média si présent (en tant que second message)
+        if media_url:
+            payload_media = {
+                "data": {
+                    "accountId": instance_id,
+                    "to": target_phone,
+                }
+            }
+            if filename and filename.lower().endswith(".pdf"):
+                payload_media["data"]["type"] = "document"
+                payload_media["data"]["documentUrl"] = media_url
+                payload_media["data"]["filename"] = filename
+            else:
+                payload_media["data"]["type"] = "image"
+                payload_media["data"]["imageUrl"] = media_url
+            
+            # Optionnel: on peut ajouter une caption si l'API le supporte finalement
+            payload_media["data"]["caption"] = filename or "Document"
+            
+            response_media = requests.post(url, json=payload_media, headers=headers, timeout=20)
+            # On retourne le résultat du média car c'est souvent l'ID qu'on veut tracker
+            result = response_media.json()
+            
+        return result
     except Exception as e:
         return {"error": str(e)}
 

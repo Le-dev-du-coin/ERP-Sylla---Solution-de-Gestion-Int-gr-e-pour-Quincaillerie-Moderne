@@ -49,7 +49,7 @@ class WhatsAppNotification(models.Model):
         FAILED = "FAILED", _("Échoué")
         EXPIRED = "EXPIRED", _("Expiré")
 
-    sale = models.ForeignKey("sales.Sale", on_delete=models.CASCADE, related_name="notifications")
+    sale = models.ForeignKey("sales.Sale", on_delete=models.CASCADE, related_name="notifications", null=True, blank=True)
     phone = models.CharField(_("Téléphone"), max_length=20)
     status = models.CharField(_("Statut"), max_length=20, choices=Status.choices, default=Status.PENDING)
     
@@ -71,7 +71,8 @@ class WhatsAppNotification(models.Model):
         return timezone.now() > self.expires_at
 
     def __str__(self):
-        return f"Notif {self.sale.invoice_number} -> {self.phone}"
+        ref = self.sale.invoice_number if self.sale else "Paiement/Autre"
+        return f"Notif {ref} -> {self.phone}"
 
 class DailyReport(models.Model):
     """Stocke les rapports journaliers générés."""
