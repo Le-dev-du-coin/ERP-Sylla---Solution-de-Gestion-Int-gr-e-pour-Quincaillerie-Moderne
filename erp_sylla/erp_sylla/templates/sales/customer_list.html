@@ -114,11 +114,11 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Téléphone WhatsApp</label>
                         <input type="text" name="phone" id="customer_phone_input" class="form-control rounded-3" 
-                               placeholder="Ex: 22370000000 (12 chiffres)" 
-                               maxlength="12" 
+                               placeholder="Ex: 70000000 ou 22370000000" 
+                               maxlength="15" 
                                required>
                         <div id="phone_alert" class="text-danger small mt-1" style="display: none;">
-                            <i class="fas fa-exclamation-triangle me-1"></i> Le numéro doit comporter exactement 12 chiffres.
+                            <i class="fas fa-exclamation-triangle me-1"></i> Le numéro doit comporter 8 chiffres ou 11 (avec 223).
                         </div>
                     </div>
                     <div class="mb-0">
@@ -149,7 +149,8 @@
                 // Supprimer tout ce qui n'est pas un chiffre
                 this.value = this.value.replace(/\D/g, '');
                 
-                if (this.value.length > 0 && this.value.length !== 12) {
+                const len = this.value.length;
+                if (len > 0 && len !== 8 && len !== 11) {
                     phoneAlert.style.display = 'block';
                     this.classList.add('is-invalid');
                 } else {
@@ -159,7 +160,8 @@
             });
 
             phoneInput.closest('form').addEventListener('submit', function(e) {
-                if (phoneInput.value.length !== 12) {
+                const len = phoneInput.value.length;
+                if (len !== 8 && len !== 11) {
                     e.preventDefault();
                     phoneAlert.style.display = 'block';
                     phoneInput.classList.add('is-invalid');

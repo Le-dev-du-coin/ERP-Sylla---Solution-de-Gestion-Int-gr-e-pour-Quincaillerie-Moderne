@@ -60,9 +60,21 @@
                             {{ payment.amount|money }}
                         </td>
                         <td class="text-end pe-4">
-                            <a href="{% url 'sales:payment-pdf' payment.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
-                                <i class="fas fa-file-pdf me-1"></i> Reçu
-                            </a>
+                            <div class="btn-group shadow-sm">
+                                <a href="{% url 'sales:payment-pdf' payment.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-start-pill px-3">
+                                    <i class="fas fa-file-pdf me-1"></i> Reçu
+                                </a>
+                                {% if payment.customer.phone %}
+                                <button class="btn btn-outline-success btn-sm rounded-end-pill px-3"
+                                        hx-post="{% url 'sales:ajax-payment-whatsapp' payment.id %}"
+                                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                        hx-indicator="#loading-{{ payment.id }}"
+                                        title="Envoyer le reçu par WhatsApp">
+                                    <i class="fab fa-whatsapp me-1"></i>
+                                    <span id="loading-{{ payment.id }}" class="htmx-indicator spinner-border spinner-border-sm" role="status"></span>
+                                </button>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

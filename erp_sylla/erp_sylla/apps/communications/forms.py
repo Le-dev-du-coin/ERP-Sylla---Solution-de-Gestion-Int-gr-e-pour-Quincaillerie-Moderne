@@ -10,26 +10,17 @@ class CommunicationConfigForm(forms.ModelForm):
             'erp_version', 
             'manager_phone_1', 
             'manager_phone_2', 
-            'report_time',
-            'link_validity_hours'
+            'report_time', 
+            'link_validity_hours',
+            'developer_test_phone'
         ]
         widgets = {
-            'wachap_instance_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Instance ID'}),
-            'wachap_token': forms.PasswordInput(render_value=True, attrs={'class': 'form-control', 'placeholder': 'Token API'}),
-            'erp_version': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'v1.x.x'}),
-            'manager_phone_1': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+223...'}),
-            'manager_phone_2': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+223...'}),
-            # Pas de type="time" : le sélecteur natif suit la locale (souvent 12 h AM/PM).
-            # TimeInput texte + format %H:%M affiche et saisit en 24 h (ex. 20:00).
-            'report_time': forms.TimeInput(
-                format='%H:%M',
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': '20:00',
-                    'autocomplete': 'off',
-                    'inputmode': 'numeric',
-                    'title': 'Heure au format 24 h (HH:MM)',
-                },
-            ),
-            'link_validity_hours': forms.NumberInput(attrs={'class': 'form-control'}),
+            'wachap_instance_id': forms.TextInput(attrs={'class': 'form-control rounded-pill border-0 bg-light px-3'}),
+            'wachap_token': forms.PasswordInput(render_value=True, attrs={'class': 'form-control rounded-pill border-0 bg-light px-3'}),
+            'erp_version': forms.TextInput(attrs={'class': 'form-control rounded-pill border-0 bg-light px-3'}),
+            'manager_phone_1': forms.TextInput(attrs={'class': 'form-control rounded-pill border-0 bg-light px-3', 'placeholder': 'Ex: 223XXXXXXXX'}),
+            'manager_phone_2': forms.TextInput(attrs={'class': 'form-control rounded-pill border-0 bg-light px-3', 'placeholder': 'Ex: 223XXXXXXXX'}),
+            'report_time': forms.TimeInput(attrs={'class': 'form-control rounded-pill border-0 bg-light px-3', 'type': 'time'}),
+            'link_validity_hours': forms.NumberInput(attrs={'class': 'form-control rounded-pill border-0 bg-light px-3'}),
+            'developer_test_phone': forms.TextInput(attrs={'class': 'form-control rounded-pill border-0 bg-light px-3', 'placeholder': 'Ex: 223XXXXXXXX'}),
         }

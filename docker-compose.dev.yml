@@ -9,7 +9,7 @@ services:
       - POSTGRES_USER=maliandevboy
       - POSTGRES_PASSWORD=maliandevboy
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   redis:
     image: redis:7-alpine

@@ -249,12 +249,17 @@ class CashJournalView(VendeurRequiredMixin, TemplateView):
 
 # --- PARAMÈTRES & BACKUPS ---
 
+from erp_sylla.apps.communications.models import CommunicationConfig
+from erp_sylla.apps.communications.forms import CommunicationConfigForm
+
 class SettingsDashboardView(GerantRequiredMixin, TemplateView):
     """Vue regroupant les paramètres du système et la gestion des sauvegardes."""
     template_name = "core/settings_dashboard.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        config = CommunicationConfig.get_solo()
+        context['config'] = config
         context['backups'] = DatabaseBackup.objects.all()[:10]
         return context
 

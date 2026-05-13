@@ -346,6 +346,22 @@ def process_payment_ajax(request, customer_id):
         error_html = f'<div class="alert alert-danger border-0 small mb-4"><i class="fas fa-exclamation-triangle me-2"></i> Une erreur est survenue : {str(e)}</div>'
         return HttpResponse(error_html)
 
+@login_required
+@require_POST
+def resend_payment_whatsapp(request, payment_id):
+    """Renvoie manuellement un reçu via WhatsApp."""
+    payment = get_object_or_404(Payment, id=payment_id)
+    if not payment.customer.phone:
+        return HttpResponse("Le client n'a pas de numéro WhatsApp.", status=400)
+    
+    from .tasks import send_payment_notification_whatsapp_task
+    send_payment_notification_whatsapp_task.delay(payment.id)
+    
+    from django.contrib import messages
+    messages.success(request, f"Le reçu pour {payment.customer.name} a été mis en file d'attente pour envoi WhatsApp.")
+    return HttpResponse(headers={"HX-Refresh": "true"})
+
+
 class PaymentListView(LoginRequiredMixin, ListView):
     """Liste globale des versements effectués par les clients."""
     model = Payment

@@ -16,6 +16,15 @@ class CommunicationConfig(models.Model):
     manager_phone_1 = models.CharField(_("Numéro Gérant 1"), max_length=20, default="")
     manager_phone_2 = models.CharField(_("Numéro Gérant 2"), max_length=20, blank=True, null=True)
     
+    # Mode Test / Développeur
+    developer_test_phone = models.CharField(
+        _("Numéro Test Développeur"), 
+        max_length=20, 
+        blank=True, 
+        null=True,
+        help_text=_("Si renseigné, toutes les notifications WhatsApp seront envoyées à ce numéro uniquement (Mode Test).")
+    )
+    
     report_time = models.TimeField(_("Heure du rapport journalier"), default="20:00")
     link_validity_hours = models.PositiveIntegerField(_("Validité lien (heures)"), default=48)
     

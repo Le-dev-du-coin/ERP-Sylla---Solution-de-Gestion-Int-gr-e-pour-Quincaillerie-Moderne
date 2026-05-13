@@ -1,0 +1,85 @@
+{% extends "dashboard_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block dashboard_content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-6">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'sales:customer-list' %}" class="btn btn-light rounded-circle me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0">Nouveau Client</h2>
+                    <p class="text-muted mb-0">Ajouter un nouveau client au portefeuille</p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" id="customer_form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.phone|as_crispy_field }}
+                            <div id="phone_alert_form" class="text-danger small mt-1" style="display: none;">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Le numéro doit comporter 8 chiffres ou 11 (avec 223).
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.address|as_crispy_field }}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow">
+                                <i class="fas fa-user-plus me-2"></i> CRÉER LE CLIENT
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block inline_javascript %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.querySelector('input[name="phone"]');
+        const phoneAlert = document.getElementById('phone_alert_form');
+        const form = document.getElementById('customer_form');
+
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                
+                const len = this.value.length;
+                if (len > 0 && len !== 8 && len !== 11) {
+                    phoneAlert.style.display = 'block';
+                    this.classList.add('is-invalid');
+                } else {
+                    phoneAlert.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+            });
+
+            form.addEventListener('submit', function(e) {
+                const len = phoneInput.value.length;
+                if (len !== 8 && len !== 11) {
+                    e.preventDefault();
+                    phoneAlert.style.display = 'block';
+                    phoneInput.classList.add('is-invalid');
+                    phoneInput.focus();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

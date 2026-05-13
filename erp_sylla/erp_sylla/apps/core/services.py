@@ -6,6 +6,58 @@ from .models import DatabaseBackup, ReleaseCode
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 
+import requests
+from erp_sylla.apps.communications.models import CommunicationConfig
+
+def send_whatsapp_message(phone, message, media_url=None, filename=None, instance_id=None, token=None):
+    """
+    Envoie un message WhatsApp via l'API Wachap.
+    Si developer_test_phone est configuré, le message est redirigé vers ce numéro.
+    """
+    config = CommunicationConfig.get_solo()
+    
+    # Redirection vers le numéro de test si configuré
+    target_phone = phone
+    if config.developer_test_phone:
+        target_phone = config.developer_test_phone
+        message = f" [MODE TEST - Pour: {phone}] \n" + message
+
+    url = "https://api.wachap.com/v1/whatsapp/messages/send"
+    
+    payload = {
+        "data": {
+            "accountId": instance_id,
+            "to": target_phone,
+            "type": "text",
+            "content": message
+        }
+    }
+    
+    # Gestion des médias (Correction API Wachap : imageUrl pour type=image, documentUrl pour type=document)
+    if media_url:
+        if filename and filename.lower().endswith(".pdf"):
+            payload["data"]["type"] = "document"
+            payload["data"]["documentUrl"] = media_url
+            payload["data"]["filename"] = filename
+        else:
+            payload["data"]["type"] = "image"
+            payload["data"]["imageUrl"] = media_url
+        
+        payload["data"]["content"] = message # Fallback
+        payload["data"]["caption"] = message # Spécifique Wachap pour les médias
+
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=20)
+        return response.json()
+    except Exception as e:
+        return {"error": str(e)}
+
 def validate_release_code(code_str, user, operation_type):
     """
     Valide un code de déblocage pour une opération spécifique.
