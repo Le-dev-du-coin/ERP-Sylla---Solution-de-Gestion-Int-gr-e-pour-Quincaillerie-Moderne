@@ -70,8 +70,6 @@ def send_sale_summary_whatsapp_task(sale_id, is_retry=False):
         response = send_whatsapp_message(
             phone=sale.customer_phone,
             message=message,
-            media_url=public_url,
-            filename=filename,
             instance_id=config.wachap_instance_id,
             token=config.wachap_token
         )
@@ -126,6 +124,7 @@ def send_payment_notification_whatsapp_task(payment_id):
         from erp_sylla.apps.communications.models import WhatsAppNotification
         notification = WhatsAppNotification.objects.create(
             sale=None, 
+            payment=payment,
             phone=customer.phone,
             expires_at=timezone.now() + timedelta(hours=config.link_validity_hours),
             status=WhatsAppNotification.Status.PENDING
@@ -142,6 +141,8 @@ def send_payment_notification_whatsapp_task(payment_id):
             f"💳 Mode : {payment.get_payment_method_display()}\n"
             f"📉 *Nouveau solde : {customer.balance} F CFA*\n\n"
             f"🔗 Votre reçu : {public_url}\n\n"
+            f"⚠️ *Attention* : Ce lien expirera dans {config.link_validity_hours} heures. "
+            f"Veuillez télécharger votre document avant le {notification.expires_at.strftime('%d/%m à %H:%M')}.\n\n"
             f"Merci pour votre confiance !\n"
             f"_Logiciel ERP Ets Sylla Madjou ({config.erp_version})_"
         )
@@ -150,8 +151,6 @@ def send_payment_notification_whatsapp_task(payment_id):
         send_whatsapp_message(
             phone=customer.phone,
             message=message,
-            media_url=public_url,
-            filename=filename,
             instance_id=config.wachap_instance_id,
             token=config.wachap_token
         )

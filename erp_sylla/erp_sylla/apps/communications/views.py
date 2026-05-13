@@ -21,9 +21,16 @@ class SecurePDFDownloadView(View):
         if notification.is_expired():
             return render(request, "communications/link_expired.html", status=403)
         
-        sale = notification.sale
-        filename = f"Facture-{sale.invoice_number}.pdf"
-        file_path = os.path.join(settings.MEDIA_ROOT, "invoices", filename)
+        if notification.sale:
+            sale = notification.sale
+            filename = f"Facture-{sale.invoice_number}.pdf"
+            file_path = os.path.join(settings.MEDIA_ROOT, "invoices", filename)
+        elif notification.payment:
+            payment = notification.payment
+            filename = f"Recu-{payment.reference}.pdf"
+            file_path = os.path.join(settings.MEDIA_ROOT, "receipts", filename)
+        else:
+            raise Http404("Document non trouvé.")
         
         if not os.path.exists(file_path):
             raise Http404("Le fichier n'est plus disponible.")
