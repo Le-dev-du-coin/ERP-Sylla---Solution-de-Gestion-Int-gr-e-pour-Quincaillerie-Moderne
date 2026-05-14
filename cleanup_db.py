@@ -13,7 +13,7 @@ django.setup()
 from erp_sylla.apps.sales.models import Sale, Payment, SaleItem, Customer
 from erp_sylla.apps.inventory.models import StockTransaction, Product, Category, Warehouse
 from erp_sylla.apps.communications.models import WhatsAppNotification, DailyReport
-from erp_sylla.apps.core.models import Expense, ExpenseCategory
+from erp_sylla.apps.core.models import Expense, ExpenseCategory, ReleaseCode, DatabaseBackup, AuditTestModel
 from erp_sylla.apps.logistics.models import Container, ContainerExpense, LogisticsSupplier
 from django.db import connection
 
@@ -32,10 +32,12 @@ def cleanup():
         LogisticsSupplier.objects.all().delete()
         print("✅ Logistique (Conteneurs et Fournisseurs) vidée.")
 
-        # 3. Supprimer les dépenses (Core)
+        # 3. Supprimer les dépenses et données d'audit (Core)
         Expense.objects.all().delete()
-        # On peut garder les catégories de dépenses car ce sont des paramètres
-        print("✅ Dépenses vidées.")
+        ReleaseCode.objects.all().delete()
+        DatabaseBackup.objects.all().delete()
+        AuditTestModel.objects.all().delete()
+        print("✅ Dépenses, Codes de déblocage, Backups et Audits vidés.")
 
         # 4. Supprimer d'abord les objets dépendants (SaleItem, StockTransaction)
         SaleItem.objects.all().delete()
@@ -70,7 +72,10 @@ def cleanup():
                 'core_expense',
                 'logistics_container',
                 'logistics_containerexpense',
-                'logistics_logisticssupplier'
+                'logistics_logisticssupplier',
+                'core_releasecode',
+                'core_databasebackup',
+                'core_audittestmodel'
             ]
             for table in tables:
                 try:
