@@ -40,7 +40,18 @@
                             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                         <i class="fas fa-minus" style="font-size: 0.7rem;"></i>
                     </button>
-                    <span class="px-2 fw-bold align-self-center small">{{ item.quantity }}</span>
+                    
+                    <input type="number" 
+                           name="quantity" 
+                           value="{{ item.quantity }}" 
+                           class="form-control form-control-sm text-center fw-bold border-0 bg-transparent p-0"
+                           style="width: 45px; font-size: 0.85rem; box-shadow: none;"
+                           hx-post="{% url 'sales:ajax-cart-update' item.product_id item.unit %}"
+                           hx-target="#cart-container"
+                           hx-swap="outerHTML"
+                           hx-trigger="change, keyup[keyCode==13]"
+                           hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
                     <button class="btn btn-light px-2 py-1"
                             hx-post="{% url 'sales:ajax-cart-update' item.product_id item.unit %}"
                             hx-vals='{"action": "plus"}'

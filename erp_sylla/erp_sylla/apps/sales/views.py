@@ -203,6 +203,7 @@ def cart_update(request, product_id, unit):
     action = request.POST.get("action")
     price = request.POST.get("price")
     new_unit = request.POST.get("new_unit")
+    qty_input = request.POST.get("quantity")
 
     # On récupère la quantité actuelle
     key = f"{product_id}_{unit}"
@@ -211,18 +212,20 @@ def cart_update(request, product_id, unit):
 
     # 1. Gestion du changement d'unité
     if new_unit and new_unit != unit and new_unit in ["PIECE", "CARTON"]:
-        # On supprime l'ancienne clé et on ajoute une nouvelle avec les mêmes infos
-        # mais le prix par défaut de la nouvelle unité (sauf si un prix est fourni)
         product = get_object_or_404(Product, id=product_id)
         basket.remove(product_id, unit)
         basket.add(product=product, unit=new_unit, quantity=current_qty)
-        # Si un prix était en cours de saisie, on l'applique sur la nouvelle ligne
         if price:
             basket.update(product_id, new_unit, price=price)
     else:
-        # 2. Gestion classique (quantité/prix)
+        # 2. Gestion de la quantité
         new_qty = None
-        if action == "plus":
+        if qty_input is not None:
+            try:
+                new_qty = int(qty_input)
+            except (ValueError, TypeError):
+                new_qty = current_qty
+        elif action == "plus":
             new_qty = current_qty + 1
         elif action == "minus":
             new_qty = current_qty - 1
