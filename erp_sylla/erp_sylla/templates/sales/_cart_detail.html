@@ -10,9 +10,16 @@
                     <h6 class="fw-bold mb-0 text-dark small">{{ item.name }}</h6>
                     <div class="d-flex gap-1 mt-1">
                         <span class="badge bg-light text-muted border x-small" style="font-size: 0.6rem;">{{ item.sku }}</span>
-                        <span class="badge {% if item.unit == 'CARTON' %}bg-warning-subtle text-warning{% else %}bg-info-subtle text-info{% endif %} x-small" style="font-size: 0.6rem;">
-                            {{ item.unit }}
-                        </span>
+                        <select name="new_unit" 
+                                class="form-select form-select-sm py-0 px-1 border-0 fw-bold x-small {% if item.unit == 'CARTON' %}text-warning bg-warning-subtle{% else %}text-info bg-info-subtle{% endif %}" 
+                                style="font-size: 0.65rem; width: auto; height: 18px; line-height: 1;"
+                                hx-post="{% url 'sales:ajax-cart-update' item.product_id item.unit %}"
+                                hx-target="#cart-container"
+                                hx-swap="outerHTML"
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                            <option value="PIECE" {% if item.unit == 'PIECE' %}selected{% endif %}>PIECE</option>
+                            <option value="CARTON" {% if item.unit == 'CARTON' %}selected{% endif %}>CARTON</option>
+                        </select>
                     </div>
                 </div>
                 <button class="btn-close small position-absolute top-0 end-0 m-2" 

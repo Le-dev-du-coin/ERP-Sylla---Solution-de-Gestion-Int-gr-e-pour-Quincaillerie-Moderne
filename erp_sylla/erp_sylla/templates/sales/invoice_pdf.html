@@ -209,11 +209,11 @@
         </tbody>
     </table>
 
-    <div class="totals-container" style="float: left; max-width: none; width: auto;">
+    <div class="totals-container" style="margin-top: 30px; border-top: 2px solid #27ae60; padding-top: 10px;">
         <table class="totals-table">
-            <tr class="total-row">
-                <td style="background-color: transparent; color: #2c3e50; padding-left: 0;">TOTAL NET À PAYER :</td>
-                <td class="text-left" style="background-color: transparent; color: #27ae60; font-size: 20pt; padding-left: 20px;">
+            <tr class="total-row" style="background-color: transparent; color: #2c3e50;">
+                <td style="font-size: 14pt; font-weight: bold; width: 60%;">TOTAL NET À PAYER :</td>
+                <td class="text-right" style="font-size: 22pt; font-weight: bold; color: #27ae60;">
                     {{ sale.total_amount|money }}
                 </td>
             </tr>

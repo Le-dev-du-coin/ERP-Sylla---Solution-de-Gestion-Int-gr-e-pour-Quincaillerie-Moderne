@@ -198,23 +198,37 @@ def cart_remove(request, product_id, unit):
 @login_required
 @require_POST
 def cart_update(request, product_id, unit):
-    """Met à jour la quantité ou le prix d'un article."""
+    """Met à jour la quantité, le prix ou l'unité d'un article."""
     basket = Basket(request)
     action = request.POST.get("action")
     price = request.POST.get("price")
+    new_unit = request.POST.get("new_unit")
 
     # On récupère la quantité actuelle
     key = f"{product_id}_{unit}"
-    current_qty = basket.basket.get(key, {}).get("quantity", 0)
+    current_item = basket.basket.get(key, {})
+    current_qty = current_item.get("quantity", 0)
 
-    new_qty = None
-    if action == "plus":
-        new_qty = current_qty + 1
-    elif action == "minus":
-        new_qty = current_qty - 1
-    
-    # Mise à jour (quantité et/ou prix)
-    basket.update(product_id, unit, quantity=new_qty, price=price)
+    # 1. Gestion du changement d'unité
+    if new_unit and new_unit != unit and new_unit in ["PIECE", "CARTON"]:
+        # On supprime l'ancienne clé et on ajoute une nouvelle avec les mêmes infos
+        # mais le prix par défaut de la nouvelle unité (sauf si un prix est fourni)
+        product = get_object_or_404(Product, id=product_id)
+        basket.remove(product_id, unit)
+        basket.add(product=product, unit=new_unit, quantity=current_qty)
+        # Si un prix était en cours de saisie, on l'applique sur la nouvelle ligne
+        if price:
+            basket.update(product_id, new_unit, price=price)
+    else:
+        # 2. Gestion classique (quantité/prix)
+        new_qty = None
+        if action == "plus":
+            new_qty = current_qty + 1
+        elif action == "minus":
+            new_qty = current_qty - 1
+        
+        # Mise à jour (quantité et/ou prix)
+        basket.update(product_id, unit, quantity=new_qty, price=price)
     
     return render(request, "sales/_cart_detail.html", {"basket": basket, "is_htmx": True})
 
