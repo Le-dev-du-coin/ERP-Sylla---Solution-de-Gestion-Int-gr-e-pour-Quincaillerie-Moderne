@@ -8,10 +8,16 @@ register = template.Library()
 def subtract(value, arg):
     """Soustrait arg de value."""
     try:
-        # On fait la soustraction inverse car en stock on veut Threshold - Stock
         return int(value) - int(arg)
     except (ValueError, TypeError):
+        return value
+
+@register.filter(name="sum_refunds")
+def sum_refunds(returns_queryset):
+    """Calcule la somme totale des montants remboursés dans un queryset de retours."""
+    if not returns_queryset:
         return 0
+    return sum(r.total_refund_amount for r in returns_queryset)
 
 @register.filter(name="money")
 def money(value):

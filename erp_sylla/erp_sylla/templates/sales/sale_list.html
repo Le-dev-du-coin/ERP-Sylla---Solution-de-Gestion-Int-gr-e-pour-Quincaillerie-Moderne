@@ -48,7 +48,11 @@
                         </td>
                         <td><span class="small">{{ sale.seller.username }}</span></td>
                         <td>
-                            {% if sale.type == 'SALE' %}
+                            {% if sale.status == 'CANCELLED' %}
+                                <span class="badge bg-danger-subtle text-danger rounded-pill px-2">Annulée</span>
+                            {% elif sale.status == 'PARTIAL_RETURN' %}
+                                <span class="badge bg-warning-subtle text-warning rounded-pill px-2">Retour Partiel</span>
+                            {% elif sale.type == 'SALE' %}
                                 <span class="badge bg-success-soft text-success rounded-pill px-2">Facture</span>
                             {% else %}
                                 <span class="badge bg-warning-soft text-warning rounded-pill px-2">Devis</span>

@@ -29,4 +29,6 @@ urlpatterns = [
     path("ajax/cart/add/<int:product_id>/", cart_add, name="ajax-cart-add"),
     path("ajax/cart/remove/<int:product_id>/<str:unit>/", cart_remove, name="ajax-cart-remove"),
     path("ajax/cart/update/<int:product_id>/<str:unit>/", cart_update, name="ajax-cart-update"),
+    path("ajax/release-code/", request_release_code_ajax, name="ajax-release-code"),
+    path("history/<int:pk>/return/", process_return_ajax, name="sale-return"),
 ]

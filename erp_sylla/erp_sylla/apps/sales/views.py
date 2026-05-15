@@ -152,15 +152,28 @@ class SaleDeleteView(GerantRequiredMixin, DeleteView):
     success_url = reverse_lazy("sales:sale-list")
 
 
-class SaleCancelView(GerantRequiredMixin, View):
-    """Permet au gérant d'annuler une vente avec remise en stock."""
+class SaleCancelView(LoginRequiredMixin, View):
+    """Permet au vendeur d'annuler une vente avec remise en stock si le code est valide."""
     def post(self, request, pk):
         sale = get_object_or_404(Sale, pk=pk)
+        code_str = request.POST.get("code", "").strip().upper()
+
+        # 1. Validation du code de déblocage
+        from erp_sylla.apps.core.services import validate_release_code
+        from django.core.exceptions import ValidationError
+        try:
+            validate_release_code(code_str, request.user, "CANCEL")
+        except ValidationError as e:
+            from django.contrib import messages
+            messages.error(request, f"Échec annulation : {str(e)}")
+            return redirect("sales:sale-detail", pk=pk)
+
+        # 2. Exécution de l'annulation
         from .services import cancel_sale
         try:
             cancel_sale(sale, request.user)
             from django.contrib import messages
-            messages.success(request, f"La vente {sale.invoice_number} a été annulée. Les articles ont été remis en stock.")
+            messages.success(request, f"La vente {sale.invoice_number} a été annulée TOTALEMENT.")
         except Exception as e:
             from django.contrib import messages
             messages.error(request, f"Erreur lors de l'annulation : {str(e)}")
@@ -297,6 +310,82 @@ def get_product_stock_info(request):
         return HttpResponse(html)
     except (Product.DoesNotExist, Warehouse.DoesNotExist, ValueError):
         return HttpResponse("")
+
+
+@login_required
+@require_POST
+def request_release_code_ajax(request):
+    """Génère un code de déblocage et l'envoie au gérant par WhatsApp."""
+    from erp_sylla.apps.core.models import ReleaseCode
+    from erp_sylla.apps.core.services import send_release_code_whatsapp
+    from django.utils import timezone
+    from datetime import timedelta
+
+    operation_type = request.POST.get("operation_type", "DISCOUNT")
+    
+    # Création du code
+    code = ReleaseCode.objects.create(
+        operation_type=operation_type,
+        created_by=request.user,
+        expires_at=timezone.now() + timedelta(minutes=15)
+    )
+    
+    # Envoi WhatsApp
+    success = send_release_code_whatsapp(code)
+    
+    if success:
+        return HttpResponse(
+            '<div class="alert alert-success border-0 small shadow-sm">'
+            '<i class="fas fa-check-circle me-2"></i> Code envoyé au gérant par WhatsApp.'
+            '</div>'
+        )
+    else:
+        return HttpResponse(
+            '<div class="alert alert-warning border-0 small shadow-sm">'
+            '<i class="fas fa-exclamation-triangle me-2"></i> Code généré mais échec envoi WhatsApp (Vérifiez la config).'
+            '</div>'
+        )
+
+
+@login_required
+@require_POST
+def process_return_ajax(request, pk):
+    """Valide le code et traite le retour produit."""
+    sale = get_object_or_404(Sale, pk=pk)
+    code_str = request.POST.get("code", "").strip().upper()
+    reason = request.POST.get("reason", "")
+    
+    # Extraction des données d'articles
+    # Le format attendu est return_qty_{item_id}
+    items_data = []
+    for key, value in request.POST.items():
+        if key.startswith("return_qty_") and int(value) > 0:
+            item_id = key.replace("return_qty_", "")
+            items_data.append({
+                "sale_item_id": item_id,
+                "quantity": int(value)
+            })
+
+    if not items_data:
+        return HttpResponse('<div class="alert alert-danger border-0 small">Veuillez saisir au moins une quantité à retourner.</div>')
+
+    # 1. Validation du code de déblocage
+    from erp_sylla.apps.core.services import validate_release_code
+    from django.core.exceptions import ValidationError
+    try:
+        validate_release_code(code_str, request.user, "CANCEL") # On utilise CANCEL pour les retours aussi
+    except ValidationError as e:
+        return HttpResponse(f'<div class="alert alert-danger border-0 small"><i class="fas fa-times-circle me-2"></i> {str(e)}</div>')
+
+    # 2. Traitement du retour
+    from .services import process_product_return
+    try:
+        process_product_return(sale, items_data, request.user, reason)
+        from django.contrib import messages
+        messages.success(request, f"Le retour sur la facture {sale.invoice_number} a été enregistré.")
+        return HttpResponse(headers={"HX-Redirect": reverse("sales:sale-detail", args=[sale.pk])})
+    except Exception as e:
+        return HttpResponse(f'<div class="alert alert-danger border-0 small">Erreur : {str(e)}</div>')
 
 
 class SaleInvoicePDFView(LoginRequiredMixin, WeasyTemplateResponseMixin, DetailView):

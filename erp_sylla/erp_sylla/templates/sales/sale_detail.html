@@ -15,23 +15,31 @@
             <a href="{% url 'sales:sale-pdf' sale.pk %}" target="_blank" class="btn btn-primary rounded-3 px-4 shadow-sm">
                 <i class="fas fa-file-pdf me-2"></i> Afficher PDF
             </a>
-            {% if request.user.role == "GERANT" or request.user.is_superuser %}
-                {% if sale.status != 'CANCELLED' %}
-                <button type="button" class="btn btn-warning rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#cancelModal">
+            {% if sale.status != 'CANCELLED' %}
+                <button type="button" class="btn btn-warning rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#returnModal">
+                    <i class="fas fa-undo me-2"></i> Effectuer un retour
+                </button>
+                {% if request.user.role == "GERANT" or request.user.is_superuser %}
+                <button type="button" class="btn btn-outline-warning rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#cancelModal">
                     <i class="fas fa-ban me-2"></i> Annuler la vente
                 </button>
-                {% endif %}
                 <a href="{% url 'sales:sale-delete' sale.pk %}" class="btn btn-outline-danger rounded-pill px-4 shadow-sm">
                     <i class="fas fa-trash me-2"></i> Supprimer
                 </a>
+                {% endif %}
             {% endif %}
             </div>
             </div>
 
             {% if sale.status == 'CANCELLED' %}
             <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4">
-            <i class="fas fa-exclamation-triangle me-2"></i> 
-            <strong>Cette vente est ANNULÉE.</strong> Les articles ont été remis en stock et le chiffre d'affaires n'est plus comptabilisé.
+                <i class="fas fa-exclamation-triangle me-2"></i> 
+                <strong>Cette vente est ANNULÉE.</strong> Les articles ont été remis en stock et le chiffre d'affaires n'est plus comptabilisé.
+            </div>
+            {% elif sale.status == 'PARTIAL_RETURN' %}
+            <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-4">
+                <i class="fas fa-info-circle me-2"></i> 
+                <strong>Retour Partiel :</strong> Certains articles de cette facture ont été retournés.
             </div>
             {% endif %}
 
@@ -47,8 +55,9 @@
                         <thead class="bg-light">
                             <tr>
                                 <th class="ps-4">Désignation</th>
-                                <th class="text-center">Qté</th>
-                                <th class="text-end">Prix Unitaire</th>
+                                <th class="text-center">Vendu</th>
+                                <th class="text-center">Retourné</th>
+                                <th class="text-end">P.U</th>
                                 <th class="text-end pe-4">Total Ligne</th>
                             </tr>
                         </thead>
@@ -60,6 +69,13 @@
                                     <small class="text-muted">{{ item.product.sku }} - {{ item.unit }}</small>
                                 </td>
                                 <td class="text-center">{{ item.quantity }}</td>
+                                <td class="text-center">
+                                    {% if item.returned_quantity > 0 %}
+                                        <span class="badge bg-danger-subtle text-danger">{{ item.returned_quantity }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
                                 <td class="text-end">{{ item.unit_price|money }}</td>
                                 <td class="text-end pe-4 fw-bold text-primary">{{ item.total_line|money }}</td>
                             </tr>
@@ -68,10 +84,22 @@
                     </table>
                 </div>
                 <div class="card-footer bg-light p-4">
-                    <div class="d-flex justify-content-between fs-3 fw-bold text-dark">
-                        <span>Total Payé</span>
-                        <span class="text-success">{{ sale.total_amount|money }}</span>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total Initial</span>
+                        <span class="fw-bold">{{ sale.total_amount|money }}</span>
                     </div>
+                    {% with total_refunded=sale.returns.all|sum_refunds %}
+                    {% if total_refunded > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-danger">
+                        <span>Total Retourné (Remboursé/Déduit)</span>
+                        <span>- {{ total_refunded|money }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between fs-3 fw-bold text-dark border-top pt-3">
+                        <span>Total NET Final</span>
+                        <span class="text-success">{{ sale.total_amount|subtract:total_refunded|money }}</span>
+                    </div>
+                    {% endwith %}
                 </div>
             </div>
         </div>
@@ -110,20 +138,107 @@
                 <h5 class="modal-title fw-bold">Confirmer l'annulation</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 text-center">
-                <div class="mb-4">
-                    <i class="fas fa-exclamation-circle fa-4x text-warning"></i>
+            <form action="{% url 'sales:sale-cancel' sale.pk %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-circle fa-4x text-warning"></i>
+                    </div>
+                    <p class="lead fw-bold mb-2">Voulez-vous vraiment annuler la vente {{ sale.invoice_number }} ?</p>
+                    <p class="text-muted small mb-4">Cette action remettra automatiquement les articles en stock et annulera le chiffre d'affaires. Une validation du gérant est requise.</p>
+                    
+                    <div class="bg-warning-subtle p-3 rounded-4 border border-warning-subtle text-start">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-warning-emphasis small"><i class="fas fa-lock me-2"></i> Code requis</span>
+                            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold"
+                                    hx-post="{% url 'sales:ajax-release-code' %}"
+                                    hx-vals='{"operation_type": "CANCEL"}'
+                                    hx-target="#cancel-code-status">
+                                <i class="fab fa-whatsapp me-1"></i> Demander
+                            </button>
+                        </div>
+                        <div id="cancel-code-status" class="mb-2"></div>
+                        <input type="text" name="code" class="form-control text-center fw-bold border-warning" placeholder="Saisir le code gérant" required>
+                    </div>
                 </div>
-                <p class="lead fw-bold mb-2">Voulez-vous vraiment annuler la vente {{ sale.invoice_number }} ?</p>
-                <p class="text-muted">Cette action remettra automatiquement les articles en stock et annulera le chiffre d'affaires. Cette opération est irréversible.</p>
-            </div>
-            <div class="modal-footer border-0 pt-0 justify-content-center">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Non, retour</button>
-                <form action="{% url 'sales:sale-cancel' sale.pk %}" method="POST" class="d-inline" hx-boost="false">
-                    {% csrf_token %}
+                <div class="modal-footer border-0 pt-0 justify-content-center">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Non, retour</button>
                     <button type="submit" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold">OUI, ANNULER LA VENTE</button>
-                </form>
-            </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Retour de Produit -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form hx-post="{% url 'sales:sale-return' sale.pk %}" hx-target="#return-error-zone" hx-swap="innerHTML">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-undo me-2"></i> Enregistrer un retour</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="return-error-zone"></div>
+                    
+                    <p class="text-muted small mb-4">Indiquez les quantités que le client ramène. Le stock sera mis à jour et le montant sera déduit de sa dette (si crédit) ou remboursé.</p>
+                    
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Article</th>
+                                    <th class="text-center">Restant</th>
+                                    <th class="text-center" style="width: 120px;">Qté Retour</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in sale.items.all %}
+                                {% if item.remaining_quantity > 0 %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold small">{{ item.product.name }}</div>
+                                        <div class="x-small text-muted">{{ item.unit_price|money }} / {{ item.unit }}</div>
+                                    </td>
+                                    <td class="text-center fw-bold">{{ item.remaining_quantity }}</td>
+                                    <td>
+                                        <input type="number" name="return_qty_{{ item.id }}" value="0" min="0" max="{{ item.remaining_quantity }}" class="form-control form-control-sm text-center fw-bold border-primary-subtle">
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Motif du retour</label>
+                        <textarea name="reason" rows="2" class="form-control form-control-sm border-0 bg-light" placeholder="Ex: Produit défectueux, Erreur de commande..."></textarea>
+                    </div>
+
+                    <div class="bg-warning-subtle p-3 rounded-4 border border-warning-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-warning-emphasis"><i class="fas fa-lock me-2"></i> Sécurité Gérant</span>
+                            <button type="button" class="btn btn-warning btn-sm rounded-pill fw-bold"
+                                    hx-post="{% url 'sales:ajax-release-code' %}"
+                                    hx-vals='{"operation_type": "CANCEL"}'
+                                    hx-target="#code-status-zone">
+                                <i class="fab fa-whatsapp me-1"></i> Demander le code
+                            </button>
+                        </div>
+                        <div id="code-status-zone" class="mb-2"></div>
+                        <input type="text" name="code" class="form-control form-control-lg text-center fw-bold border-warning shadow-sm" placeholder="Saisir le code ici" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow">
+                        VALIDER LE RETOUR
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
