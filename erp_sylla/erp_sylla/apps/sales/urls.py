@@ -4,7 +4,7 @@ from .views import (
     CheckoutView, SaleListView, SaleDetailView, SaleDeleteView, SaleInvoicePDFView,
     CustomerListView, CustomerDetailView, CustomerCreateView, customer_search_ajax,
     process_payment_ajax, PaymentReceiptPDFView, PaymentListView, AuditLogListView,
-    SaleCancelView, resend_payment_whatsapp
+    SaleCancelView, resend_payment_whatsapp, request_release_code_ajax, process_return_ajax
 )
 
 app_name = "sales"
