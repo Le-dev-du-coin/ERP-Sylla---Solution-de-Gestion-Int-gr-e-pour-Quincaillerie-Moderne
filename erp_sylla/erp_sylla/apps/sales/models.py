@@ -99,6 +99,7 @@ class Sale(models.Model):
         PENDING = "PENDING", _("En attente")
         COMPLETED = "COMPLETED", _("Terminée")
         CANCELLED = "CANCELLED", _("Annulée")
+        PARTIAL_RETURN = "PARTIAL_RETURN", _("Retour Partiel")
 
     invoice_number = models.CharField(_("N° Facture/Devis"), max_length=50, unique=True)
     status = models.CharField(_("Statut"), max_length=20, choices=Status.choices, default=Status.COMPLETED)
@@ -153,6 +154,7 @@ class SaleItem(models.Model):
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="sale_items")
     quantity = models.PositiveIntegerField(_("Quantité"))
+    returned_quantity = models.PositiveIntegerField(_("Quantité retournée"), default=0)
     unit = models.CharField(_("Unité"), max_length=10, choices=[("PIECE", "Pièce"), ("CARTON", "Carton")])
     unit_price = models.PositiveIntegerField(_("Prix unitaire (au moment de la vente)"))
     total_line = models.PositiveIntegerField(_("Total ligne"), default=0)
@@ -170,3 +172,44 @@ class SaleItem(models.Model):
     def save(self, *args, **kwargs):
         self.total_line = self.quantity * self.unit_price
         super().save(*args, **kwargs)
+
+    @property
+    def remaining_quantity(self):
+        return self.quantity - self.returned_quantity
+
+
+class ProductReturn(models.Model):
+    """
+    Trace chaque opération de retour de marchandise.
+    """
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name="returns")
+    returned_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="processed_returns")
+    
+    total_refund_amount = models.PositiveIntegerField(_("Montant total remboursé"), default=0)
+    reason = models.TextField(_("Motif du retour"), blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = _("Retour de produit")
+        verbose_name_plural = _("Retours de produits")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Retour sur {self.sale.invoice_number} ({self.created_at.strftime('%d/%m/%y')})"
+
+
+class ProductReturnItem(models.Model):
+    """
+    Détail des articles inclus dans un retour spécifique.
+    """
+    product_return = models.ForeignKey(ProductReturn, on_delete=models.CASCADE, related_name="items")
+    sale_item = models.ForeignKey(SaleItem, on_delete=models.CASCADE)
+    
+    quantity = models.PositiveIntegerField(_("Quantité retournée"))
+    unit_price = models.PositiveIntegerField(_("Prix unitaire au moment du retour"))
+    
+    def __str__(self):
+        return f"{self.quantity} x {self.sale_item.product.name}"

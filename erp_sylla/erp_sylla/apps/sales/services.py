@@ -4,9 +4,99 @@ from erp_sylla.apps.inventory.models import StockTransaction, Warehouse
 from .models import Customer, Payment, Sale, SaleItem
 
 
+def process_product_return(sale, items_data, user, reason=""):
+    """
+    Traite un retour de produits partiel ou total.
+    items_data : list de dict {'sale_item_id': int, 'quantity': int}
+    """
+    from erp_sylla.apps.inventory.models import Product
+    from django.utils import timezone
+    
+    if sale.status == Sale.Status.CANCELLED:
+        raise ValueError("Impossible de faire un retour sur une vente déjà annulée.")
+
+    with transaction.atomic():
+        total_refund = 0
+        product_return = ProductReturn.objects.create(
+            sale=sale,
+            returned_by=user,
+            reason=reason
+        )
+
+        for data in items_data:
+            sale_item = SaleItem.objects.select_for_update().get(id=data['sale_item_id'], sale=sale)
+            qty_to_return = int(data['quantity'])
+
+            if qty_to_return <= 0:
+                continue
+            
+            if qty_to_return > sale_item.remaining_quantity:
+                raise ValueError(f"Quantité à retourner ({qty_to_return}) supérieure au reste ({sale_item.remaining_quantity}) pour {sale_item.product.name}.")
+
+            # 1. Mise à jour de la ligne de vente
+            sale_item.returned_quantity += qty_to_return
+            sale_item.save()
+
+            # 2. Création de la ligne de retour
+            line_refund = qty_to_return * sale_item.unit_price
+            total_refund += line_refund
+            
+            ProductReturnItem.objects.create(
+                product_return=product_return,
+                sale_item=sale_item,
+                quantity=qty_to_return,
+                unit_price=sale_item.unit_price
+            )
+
+            # 3. Remise en stock
+            # On récupère le dernier entrepôt de sortie pour ce produit sur cette vente
+            orig_trans = StockTransaction.objects.filter(
+                product=sale_item.product,
+                notes__icontains=sale.invoice_number,
+                quantity__lt=0
+            ).first()
+            
+            warehouse = orig_trans.warehouse if orig_trans else Warehouse.objects.filter(is_active=True).first()
+
+            pieces_to_add = qty_to_return
+            if sale_item.unit == "CARTON":
+                pieces_to_add = qty_to_return * sale_item.product.conversion_factor
+
+            StockTransaction.objects.create(
+                product=sale_item.product,
+                warehouse=warehouse,
+                quantity=pieces_to_add,
+                type=StockTransaction.Types.ENTREE,
+                notes=f"Retour produit sur {sale.invoice_number}"
+            )
+
+        # 4. Finalisation du retour financier
+        product_return.total_refund_amount = total_refund
+        product_return.save()
+
+        # 5. Ajustement solde client (si CREDIT)
+        if sale.payment_method == Sale.PaymentMethods.CREDIT and sale.customer:
+            customer = Customer.objects.select_for_update().get(id=sale.customer.id)
+            customer.balance -= total_refund
+            customer.save()
+        
+        # 6. Mise à jour statut vente si tout est retourné
+        total_qty = sum(item.quantity for item in sale.items.all())
+        total_returned = sum(item.returned_quantity for item in sale.items.all())
+        
+        if total_returned >= total_qty:
+            sale.status = Sale.Status.CANCELLED
+        else:
+            sale.status = "PARTIAL_RETURN" # On peut ajouter ce statut ou laisser en COMPLETED avec flag
+        
+        sale.save()
+        
+        return product_return
+
+
 def cancel_sale(sale, cancelled_by):
     """
-    Annule une vente, remet les articles en stock et déduit la dette client si nécessaire.
+    Annule une vente, remet les articles restants en stock et déduit le solde client restant.
     """
     from django.utils import timezone
 
@@ -14,37 +104,48 @@ def cancel_sale(sale, cancelled_by):
         raise ValueError("Cette vente est déjà annulée.")
 
     with transaction.atomic():
-        # 1. Remise en stock (Annulation des mouvements de sortie)
+        total_to_deduct = 0
+        
+        # 1. Remise en stock (Annulation des mouvements de sortie pour ce qui n'a pas été retourné)
         for item in sale.items.all():
-            # On cherche la transaction de stock correspondante
-            # On en crée une inverse (ENTREE pour compenser la SORTIE)
-            # On récupère l'entrepôt depuis la transaction de sortie initiale
+            qty_remaining = item.remaining_quantity
+            if qty_remaining <= 0:
+                continue
+
             orig_trans = StockTransaction.objects.filter(
                 product=item.product,
-                quantity=-item.quantity, # On cherche la sortie initiale
-                notes__icontains=sale.invoice_number
+                notes__icontains=sale.invoice_number,
+                quantity__lt=0
             ).first()
             
             warehouse = orig_trans.warehouse if orig_trans else Warehouse.objects.filter(is_active=True).first()
 
+            pieces_to_add = qty_remaining
+            if item.unit == "CARTON":
+                pieces_to_add = qty_remaining * item.product.conversion_factor
+
             StockTransaction.objects.create(
                 product=item.product,
                 warehouse=warehouse,
-                quantity=item.quantity, # Retour positif
+                quantity=pieces_to_add,
                 type=StockTransaction.Types.ENTREE,
-                notes=f"Retour en stock suite annulation {sale.invoice_number}"
+                notes=f"Retour en stock suite annulation TOTALE {sale.invoice_number}"
             )
+            
+            total_to_deduct += (qty_remaining * item.unit_price)
+            item.returned_quantity = item.quantity # Tout est considéré comme retourné
+            item.save()
 
         # 2. Correction de la dette client (si vente à crédit)
         if sale.payment_method == Sale.PaymentMethods.CREDIT and sale.customer:
             customer = Customer.objects.select_for_update().get(id=sale.customer.id)
-            customer.balance -= sale.total_amount
+            customer.balance -= total_to_deduct
             customer.save()
 
         # 3. Mise à jour du statut
         sale.status = Sale.Status.CANCELLED
         prev_notes = sale.notes or ""
-        sale.notes = f"{prev_notes}\nAnnulée par {cancelled_by.username} le {timezone.now().strftime('%d/%m/%Y %H:%M')}"
+        sale.notes = f"{prev_notes}\nAnnulée TOTALEMENT par {cancelled_by.username} le {timezone.now().strftime('%d/%m/%Y %H:%M')}"
         sale.save()
 
         return sale

@@ -70,6 +70,37 @@ def send_whatsapp_message(phone, message, media_url=None, filename=None, instanc
     except Exception as e:
         return {"error": str(e)}
 
+def send_release_code_whatsapp(release_code):
+    """
+    Envoie un code de déblocage par WhatsApp aux gérants configurés.
+    """
+    config = CommunicationConfig.get_solo()
+    if not config.wachap_instance_id or not config.wachap_token:
+        return False
+
+    message = (
+        f"🔐 *CODE DE DÉBLOCAGE ERP*\n\n"
+        f"📍 *Opération :* {release_code.get_operation_type_display()}\n"
+        f"👤 *Demandé par :* {release_code.created_by.get_full_name() or release_code.created_by.username}\n"
+        f"🔢 *CODE : {release_code.code}*\n\n"
+        f"⏰ Expire le : {release_code.expires_at.strftime('%d/%m à %H:%M')}\n"
+        f"⚠️ Ne partagez ce code qu'avec la personne autorisée."
+    )
+
+    phones = [config.manager_phone_1]
+    if config.manager_phone_2:
+        phones.append(config.manager_phone_2)
+
+    for phone in phones:
+        if phone:
+            send_whatsapp_message(
+                phone=phone,
+                message=message,
+                instance_id=config.wachap_instance_id,
+                token=config.wachap_token
+            )
+    return True
+
 def validate_release_code(code_str, user, operation_type):
     """
     Valide un code de déblocage pour une opération spécifique.
