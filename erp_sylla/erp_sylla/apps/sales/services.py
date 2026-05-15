@@ -1,7 +1,7 @@
 from django.db import transaction, models
 from erp_sylla.apps.inventory.models import StockTransaction, Warehouse
 
-from .models import Customer, Payment, Sale, SaleItem
+from .models import Customer, Payment, Sale, SaleItem, ProductReturn, ProductReturnItem
 
 
 def process_product_return(sale, items_data, user, reason=""):
