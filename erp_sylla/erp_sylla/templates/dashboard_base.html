@@ -77,8 +77,8 @@
             </li>
             
             <li class="mt-4 px-3 text-uppercase x-small text-muted" style="font-size: 0.7rem; letter-spacing: 1px;">Communications</li>
-            <li class="{% if request.resolver_match.view_name == 'communications:notification-dashboard' %}active{% endif %}">
-                <a href="{% url 'communications:notification-dashboard' %}"><i class="fab fa-whatsapp me-2"></i> Suivi WhatsApp</a>
+            <li class="{% if 'communications' in request.resolver_match.namespace and 'notification-dashboard' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'communications:notification-dashboard' %}"><i class="fab fa-whatsapp me-2 text-success"></i> Suivi WhatsApp</a>
             </li>
             {% endif %}
 

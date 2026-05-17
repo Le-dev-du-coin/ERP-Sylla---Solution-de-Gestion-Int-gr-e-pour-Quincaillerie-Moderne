@@ -4,7 +4,8 @@ from .views import (
     CheckoutView, SaleListView, SaleDetailView, SaleDeleteView, SaleInvoicePDFView,
     CustomerListView, CustomerDetailView, CustomerCreateView, customer_search_ajax,
     process_payment_ajax, PaymentReceiptPDFView, PaymentListView, AuditLogListView,
-    SaleCancelView, resend_payment_whatsapp, request_release_code_ajax, process_return_ajax
+    SaleCancelView, resend_payment_whatsapp, request_release_code_ajax, process_return_ajax,
+    QuoteConvertToSaleView
 )
 
 app_name = "sales"
@@ -15,6 +16,7 @@ urlpatterns = [
     path("history/payments/", PaymentListView.as_view(), name="payment-list"),
     path("history/audit/", AuditLogListView.as_view(), name="audit-log"),
     path("history/<int:pk>/", SaleDetailView.as_view(), name="sale-detail"),
+    path("history/<int:pk>/convert/", QuoteConvertToSaleView.as_view(), name="sale-convert-quote"),
     path("history/<int:pk>/cancel/", SaleCancelView.as_view(), name="sale-cancel"),
     path("history/<int:pk>/delete/", SaleDeleteView.as_view(), name="sale-delete"),
     path("history/<int:pk>/pdf/", SaleInvoicePDFView.as_view(), name="sale-pdf"),

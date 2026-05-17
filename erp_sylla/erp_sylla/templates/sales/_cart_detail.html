@@ -2,7 +2,7 @@
 
 <div id="cart-container">
     <!-- Zone scrollable des articles -->
-    <div id="cart-items-scroll" class="p-0" style="max-height: 450px; overflow-y: auto; overflow-x: hidden;">
+    <div id="cart-items-scroll" class="p-0" style="max-height: calc(100vh - 420px); min-height: 200px; overflow-y: auto; overflow-x: hidden;">
         {% for item in basket %}
         <div class="p-3 border-bottom position-relative bg-white">
             <div class="d-flex justify-content-between align-items-start mb-2">
@@ -12,7 +12,7 @@
                         <span class="badge bg-light text-muted border x-small" style="font-size: 0.6rem;">{{ item.sku }}</span>
                         <select name="new_unit" 
                                 class="form-select form-select-sm py-0 px-1 border-0 fw-bold x-small {% if item.unit == 'CARTON' %}text-warning bg-warning-subtle{% else %}text-info bg-info-subtle{% endif %}" 
-                                style="font-size: 0.65rem; width: auto; height: 18px; line-height: 1;"
+                                style="font-size: 0.65rem; width: auto; height: 18px; line-height: 1; appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: none;"
                                 hx-post="{% url 'sales:ajax-cart-update' item.product_id item.unit %}"
                                 hx-target="#cart-container"
                                 hx-swap="outerHTML"

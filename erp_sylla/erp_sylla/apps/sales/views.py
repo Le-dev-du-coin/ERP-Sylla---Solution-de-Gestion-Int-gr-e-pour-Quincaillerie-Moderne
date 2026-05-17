@@ -495,3 +495,33 @@ class AuditLogListView(GerantRequiredMixin, ListView):
         # On récupère l'historique des clients pour commencer
         # Dans un vrai système, on pourrait fusionner plusieurs historiques
         return Customer.history.all().select_related('history_user')
+
+class QuoteConvertToSaleView(LoginRequiredMixin, View):
+    """Permet de convertir un devis validé en vente réelle (avec déstockage)."""
+    def post(self, request, pk):
+        from .services import convert_quote_to_sale
+        from django.contrib import messages
+        
+        sale = get_object_or_404(Sale, pk=pk, type=Sale.Types.DEVIS)
+        
+        # On utilise l'entrepôt assigné ou le premier disponible
+        warehouse_id = getattr(request.user, 'assigned_warehouse_id', None)
+        if not warehouse_id:
+            warehouse = Warehouse.objects.filter(is_active=True).first()
+            if not warehouse:
+                messages.error(request, "Aucun entrepôt actif configuré pour le déstockage.")
+                return redirect("sales:sale-detail", pk=pk)
+            warehouse_id = warehouse.id
+
+        try:
+            convert_quote_to_sale(sale, request.user, warehouse_id)
+            messages.success(request, f"Conversion réussie ! Le devis est devenu la facture {sale.invoice_number}.")
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.exception("Erreur lors de la conversion de devis")
+            messages.error(request, f"Erreur technique : {str(e)}")
+            
+        return redirect("sales:sale-detail", pk=pk)

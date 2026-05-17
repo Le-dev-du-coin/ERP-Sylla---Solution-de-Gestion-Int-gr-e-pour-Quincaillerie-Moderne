@@ -270,3 +270,58 @@ def complete_sale(basket, user, warehouse_id, sale_type, payment_method, custome
             transaction.on_commit(lambda: send_sale_summary_whatsapp_task.delay(sale.id))
         
         return sale
+
+
+def convert_quote_to_sale(quote, user, warehouse_id):
+    """
+    Convertit un devis en vente validée.
+    Déstocke les produits et génère un numéro de facture FAC.
+    """
+    warehouse = Warehouse.objects.get(id=warehouse_id)
+    
+    with transaction.atomic():
+        if quote.type != Sale.Types.DEVIS:
+            raise ValueError("Ce document n'est pas un devis.")
+            
+        # 1. Mise à jour du type et statut
+        quote.type = Sale.Types.VENTE
+        quote.status = Sale.Status.COMPLETED
+        quote.invoice_number = "" # Sera régénéré lors du save()
+        quote.seller = user
+        
+        # 2. Déstockage
+        for item in quote.items.all():
+            from erp_sylla.apps.inventory.models import Product
+            product = Product.objects.select_for_update().get(id=item.product_id)
+            
+            pieces_to_remove = item.quantity
+            if item.unit == "CARTON":
+                pieces_to_remove = item.quantity * product.conversion_factor
+            
+            # VÉRIFICATION DU STOCK
+            current_stock = product.stock_transactions.filter(warehouse=warehouse).aggregate(total=models.Sum("quantity"))["total"] or 0
+            if current_stock < pieces_to_remove:
+                raise ValueError(f"Stock insuffisant pour {product.name} dans {warehouse.name} ({current_stock} pcs restantes).")
+
+            StockTransaction.objects.create(
+                product=product,
+                warehouse=warehouse,
+                quantity=-abs(pieces_to_remove),
+                type=StockTransaction.Types.SORTIE,
+                notes=f"Vente (Conversion Devis)"
+            )
+
+        # 3. Gestion de la dette
+        if quote.payment_method == Sale.PaymentMethods.CREDIT and quote.customer:
+            customer = Customer.objects.select_for_update().get(id=quote.customer.id)
+            customer.balance += quote.total_amount
+            customer.save()
+            
+        quote.save()
+        
+        # 4. Envoi WhatsApp
+        if quote.customer_phone:
+            from erp_sylla.apps.sales.tasks import send_sale_summary_whatsapp_task
+            transaction.on_commit(lambda: send_sale_summary_whatsapp_task.delay(quote.id))
+            
+        return quote
