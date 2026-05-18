@@ -21,11 +21,11 @@ class ContainerForm(forms.ModelForm):
             "actual_arrival_date", "merchandise_value", "observation"
         ]
         widgets = {
-            "order_date": forms.DateInput(attrs={"type": "date", "class": "form-control rounded-3"}),
-            "loading_date": forms.DateInput(attrs={"type": "date", "class": "form-control rounded-3"}),
-            "etd": forms.DateInput(attrs={"type": "date", "class": "form-control rounded-3"}),
-            "eta": forms.DateInput(attrs={"type": "date", "class": "form-control rounded-3"}),
-            "actual_arrival_date": forms.DateInput(attrs={"type": "date", "class": "form-control rounded-3"}),
+            "order_date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date", "class": "form-control rounded-3"}),
+            "loading_date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date", "class": "form-control rounded-3"}),
+            "etd": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date", "class": "form-control rounded-3"}),
+            "eta": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date", "class": "form-control rounded-3"}),
+            "actual_arrival_date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date", "class": "form-control rounded-3"}),
             "observation": forms.Textarea(attrs={"rows": 3, "class": "form-control rounded-3"}),
             "status": forms.Select(attrs={"class": "form-select rounded-3"}),
             "supplier": forms.Select(attrs={"class": "form-select rounded-3"}),

@@ -30,13 +30,27 @@
                     {% for notif in notifications %}
                     <tr>
                         <td class="ps-4">
+                            {% if notif.sale %}
                             <a href="{% url 'sales:sale-detail' notif.sale.pk %}" class="fw-bold text-dark text-decoration-none">
                                 {{ notif.sale.invoice_number }}
                             </a>
+                            {% elif notif.payment %}
+                            <span class="fw-bold text-dark">Paiement #{{ notif.payment.reference }}</span>
+                            {% else %}
+                            <span class="text-muted">Notification</span>
+                            {% endif %}
                             <div class="small text-muted">{{ notif.created_at|date:"d/m H:i" }}</div>
                         </td>
                         <td>
-                            <div class="fw-bold">{{ notif.sale.customer_name|default:"Client passage" }}</div>
+                            <div class="fw-bold">
+                                {% if notif.sale %}
+                                    {{ notif.sale.customer_name|default:"Client passage" }}
+                                {% elif notif.payment %}
+                                    {{ notif.payment.customer.name|default:"Client passage" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </div>
                             <div class="text-muted small"><i class="fab fa-whatsapp text-success me-1"></i> {{ notif.phone }}</div>
                         </td>
                         <td>
