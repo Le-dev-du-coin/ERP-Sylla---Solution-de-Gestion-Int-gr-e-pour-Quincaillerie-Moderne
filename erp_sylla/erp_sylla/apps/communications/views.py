@@ -71,4 +71,13 @@ class NotificationDashboardView(LoginRequiredMixin, ListView):
     paginate_by = 50
 
     def get_queryset(self):
-        return WhatsAppNotification.objects.select_related("sale").all()
+        queryset = WhatsAppNotification.objects.select_related("sale", "payment").all()
+        status_filter = self.request.GET.get("status")
+        if status_filter == "FAILED":
+            queryset = queryset.filter(status=WhatsAppNotification.Status.FAILED)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_status"] = self.request.GET.get("status", "ALL")
+        return context

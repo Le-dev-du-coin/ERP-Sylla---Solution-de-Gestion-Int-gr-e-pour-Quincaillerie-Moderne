@@ -64,6 +64,24 @@ class WhatsAppNotification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def human_error(self):
+        """Traduit les erreurs techniques en messages utilisateur."""
+        if not self.error_log:
+            return None
+        
+        err = self.error_log.lower()
+        if "invalid destination" in err or "format" in err:
+            return "Numéro de téléphone invalide ou mal formaté."
+        if "instance" in err or "unauthorized" in err:
+            return "Erreur de connexion avec le service WhatsApp (Instance ID/Token)."
+        if "quota" in err or "limit" in err:
+            return "Limite d'envoi atteinte pour votre forfait."
+        if "file" in err or "not found" in err:
+            return "Le document PDF est introuvable sur le serveur."
+        
+        return "Échec de l'envoi. Veuillez réessayer ultérieurement."
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = _("Notification WhatsApp")

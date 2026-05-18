@@ -8,8 +8,8 @@
             <p class="text-muted small">Historique des envois et état des livraisons</p>
         </div>
         <div class="btn-group shadow-sm rounded-3 overflow-hidden">
-            <button class="btn btn-white fw-bold active">Toutes</button>
-            <button class="btn btn-white fw-bold">Échecs</button>
+            <a href="?status=ALL" class="btn btn-white fw-bold {% if current_status == 'ALL' %}active{% endif %}">Toutes</a>
+            <a href="?status=FAILED" class="btn btn-white fw-bold {% if current_status == 'FAILED' %}active{% endif %}">Échecs</a>
         </div>
     </div>
 
@@ -21,7 +21,7 @@
                         <th class="ps-4">Référence</th>
                         <th>Client / Téléphone</th>
                         <th>Statut</th>
-                        <th>Retours / Erreurs</th>
+                        <th>Détails de l'envoi</th>
                         <th class="text-center">Tentatives</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
@@ -73,12 +73,14 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if notif.error_log %}
-                                <div class="text-danger small text-truncate" style="max-width: 200px;" title="{{ notif.error_log }}">
-                                    {{ notif.error_log }}
+                            {% if notif.status == 'FAILED' %}
+                                <div class="text-danger small" title="{{ notif.error_log }}">
+                                    <i class="fas fa-info-circle me-1"></i> {{ notif.human_error }}
                                 </div>
+                            {% elif notif.message_id %}
+                                <div class="text-muted small">ID: {{ notif.message_id }}</div>
                             {% else %}
-                                <div class="text-muted small">Wachap ID: {{ notif.message_id|default:"-" }}</div>
+                                <div class="text-muted small">-</div>
                             {% endif %}
                         </td>
                         <td class="text-center">
@@ -89,10 +91,9 @@
                             <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" title="Relancer l'envoi">
                                 <i class="fas fa-redo-alt me-1"></i> Relancer
                             </button>
+                            {% else %}
+                                <span class="text-muted small">-</span>
                             {% endif %}
-                            <a href="{% url 'communications:secure-pdf-download' notif.token %}" target="_blank" class="btn btn-light btn-sm rounded-circle ms-1" title="Voir le lien client">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
                         </td>
                     </tr>
                     {% empty %}
