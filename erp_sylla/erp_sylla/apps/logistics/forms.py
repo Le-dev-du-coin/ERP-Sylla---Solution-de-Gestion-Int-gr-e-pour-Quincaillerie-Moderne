@@ -35,6 +35,16 @@ class ContainerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Liste des champs qui ont déjà un widget spécifique défini dans Meta
         custom_widgets = ["order_date", "loading_date", "etd", "eta", "actual_arrival_date", "observation", "status", "supplier"]
+        
+        # Force le format YYYY-MM-DD pour les champs date (nécessaire pour <input type="date">)
+        date_fields = ["order_date", "loading_date", "etd", "eta", "actual_arrival_date"]
+        for field_name in date_fields:
+            if field_name in self.fields:
+                self.fields[field_name].widget.format = '%Y-%m-%d'
+                # On s'assure que la valeur initiale est aussi formatée si elle existe
+                if self.instance and getattr(self.instance, field_name):
+                    self.initial[field_name] = getattr(self.instance, field_name).strftime('%Y-%m-%d')
+
         for field_name, field in self.fields.items():
             if field_name not in custom_widgets:
                 field.widget.attrs.update({"class": "form-control rounded-3"})
