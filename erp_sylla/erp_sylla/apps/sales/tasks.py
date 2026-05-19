@@ -165,6 +165,9 @@ def send_payment_notification_whatsapp_task(payment_id):
 @shared_task
 def send_daily_report_task():
     """Génère et envoie le rapport de ventes journalier au gérant."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     today = timezone.now().date()
     sales = Sale.objects.filter(created_at__date=today, type="SALE")
     total_day = sum(s.total_amount for s in sales)
@@ -172,57 +175,79 @@ def send_daily_report_task():
     
     config = CommunicationConfig.get_solo()
     if not config.manager_phone_1:
-        return "Aucun numéro de gérant configuré pour le rapport."
+        logger.error("Aucun numéro de gérant configuré pour le rapport.")
+        return "Aucun numéro de gérant configuré."
 
-    # 1. Rapport PDF
-    from django.db.models import Sum
-    payments = sales.values('payment_method').annotate(total=Sum('total_amount'))
-    report_obj, _ = DailyReport.objects.get_or_create(date=today, defaults={'total_sales': total_day})
-    
-    html_string = render_to_string("sales/daily_report_pdf.html", {
-        "date": today,
-        "sales": sales,
-        "total_day": total_day,
-        "payments": payments
-    })
-    pdf_file = HTML(string=html_string, base_url=settings.APPS_DIR).write_pdf()
-    
-    filename = f"Rapport-Journalier-{today.strftime('%Y%m%d')}.pdf"
-    directory = os.path.join(settings.MEDIA_ROOT, "reports")
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    
-    with open(os.path.join(directory, filename), "wb") as f:
-        f.write(pdf_file)
-
-    # 2. Lien sécurisé
-    download_path = reverse("communications:report-download", kwargs={"token": report_obj.token})
-    public_url = f"https://{settings.SITE_DOMAIN}{download_path}"
+    try:
+        # 1. Rapport PDF
+        from django.db.models import Sum
+        payments = sales.values('payment_method').annotate(total=Sum('total_amount'))
+        report_obj, _ = DailyReport.objects.get_or_create(date=today, defaults={'total_sales': total_day})
         
-    message = (
-        f"📊 *RAPPORT JOURNALIER - {today.strftime('%d/%m/%Y')}*\n\n"
-        f"✅ Ventes validées : {count}\n"
-        f"💰 CA Total : *{total_day} F CFA*\n\n"
-        f"🔗 *Détail complet (PDF) :*\n{public_url}\n\n"
-        f"_Généré à {config.report_time} par ERP Ets Sylla Madjou ({config.erp_version})_"
-    )
-    
-    from erp_sylla.apps.core.services import send_whatsapp_message
-    
-    # Envoi au gérant 1
-    send_whatsapp_message(
-        phone=config.manager_phone_1,
-        message=message,
-        instance_id=config.wachap_instance_id,
-        token=config.wachap_token
-    )
-    
-    if config.manager_phone_2:
-        send_whatsapp_message(
-            phone=config.manager_phone_2,
-            message=message,
-            instance_id=config.wachap_instance_id,
-            token=config.wachap_token
+        html_string = render_to_string("sales/daily_report_pdf.html", {
+            "date": today,
+            "sales": sales,
+            "total_day": total_day,
+            "payments": payments
+        })
+        pdf_file = HTML(string=html_string, base_url=settings.APPS_DIR).write_pdf()
+        
+        filename = f"Rapport-Journalier-{today.strftime('%Y%m%d')}.pdf"
+        directory = os.path.join(settings.MEDIA_ROOT, "reports")
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+        with open(os.path.join(directory, filename), "wb") as f:
+            f.write(pdf_file)
+
+        # 2. Lien sécurisé
+        download_path = reverse("communications:report-download", kwargs={"token": report_obj.token})
+        public_url = f"https://{settings.SITE_DOMAIN}{download_path}"
+            
+        message = (
+            f"📊 *RAPPORT JOURNALIER - {today.strftime('%d/%m/%Y')}*\n\n"
+            f"✅ Ventes validées : {count}\n"
+            f"💰 CA Total : *{total_day} F CFA*\n\n"
+            f"🔗 *Détail complet (PDF) :*\n{public_url}\n\n"
+            f"_Généré à {timezone.now().strftime('%H:%M')} par ERP Ets Sylla Madjou ({config.erp_version})_"
         )
         
-    return f"Rapport envoyé : {count} ventes, {total_day} F CFA"
+        from erp_sylla.apps.core.services import send_whatsapp_message
+        
+        phones = [config.manager_phone_1]
+        if config.manager_phone_2:
+            phones.append(config.manager_phone_2)
+
+        results = []
+        for phone in phones:
+            # Création d'une notification pour le suivi dans le dashboard
+            notif = WhatsAppNotification.objects.create(
+                phone=phone,
+                expires_at=timezone.now() + timedelta(days=7), # Les rapports durent plus longtemps
+                status=WhatsAppNotification.Status.PENDING
+            )
+            
+            resp = send_whatsapp_message(
+                phone=phone,
+                message=message,
+                instance_id=config.wachap_instance_id,
+                token=config.wachap_token
+            )
+            
+            if "error" not in resp:
+                notif.status = WhatsAppNotification.Status.SENT
+                notif.message_id = resp.get("id")
+                notif.sent_at = timezone.now()
+            else:
+                notif.status = WhatsAppNotification.Status.FAILED
+                notif.error_log = resp.get("error")
+                logger.error(f"Échec envoi rapport à {phone}: {resp.get('error')}")
+            
+            notif.save()
+            results.append(f"{phone}: {notif.status}")
+            
+        return f"Rapport {today}: " + ", ".join(results)
+
+    except Exception as e:
+        logger.exception("Erreur critique lors de la génération du rapport journalier")
+        return f"Erreur critique : {str(e)}"
